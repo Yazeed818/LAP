@@ -189,9 +189,7 @@
       font-weight: bold;
       color: #4285F4;
     }
-    .chat-message p {
-      margin: 5px 0;
-    }
+    .chat-message p { margin: 5px 0; }
     #chatForm input[type="text"] {
       width: calc(100% - 120px);
       display: inline-block;
@@ -210,7 +208,7 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- رأس الموقع مع عدة هيلوجرامات -->
+  <!-- رأس الموقع مع هيلوجرامات متعددة -->
   <header class="header">
     <div class="overlay">
       <h1 class="hologram">مشاريعك التقنية</h1>
@@ -226,7 +224,7 @@
     <p>الكود الخاص بك:</p>
     <div id="userCodeDisplay"></div>
     <p>احفظ الكود عشان ترجع لمشاريعك</p>
-    <input type="number" id="codeInput" placeholder="أدخل الكود هنا">
+    <input type="number" id="codeInput" placeholder="أدخل كود صديقك أو كودك">
     <button id="enterDashboardBtn">دخول المشاريع</button>
     <div id="codeError" class="error-message"></div>
   </div>
@@ -302,7 +300,7 @@
       });
     }
 
-    // التحقق من وجود كود في localStorage أو توليد واحد جديد
+    // إذا لم يكن هناك كود في localStorage، قم بتوليد واحد وحفظه وإنشاء المستند في Firestore
     if (!userCode) {
       userCode = Math.floor(100000 + Math.random() * 900000).toString();
       localStorage.setItem("userCode", userCode);
@@ -317,11 +315,13 @@
       const inputCode = document.getElementById("codeInput").value.trim();
       const errorDiv = document.getElementById("codeError");
       errorDiv.textContent = "";
+      // إذا أدخلت كودك الخاص، أو إذا أدخلت كود صديق موجود
       if (inputCode === userCode) {
         enterDashboard(userCode);
       } else {
         db.collection("users").doc(inputCode).get().then(doc => {
           if (doc.exists) {
+            // تحديث localStorage ليصبح الكود هو كود الجلسة المشتركة
             userCode = inputCode;
             localStorage.setItem("userCode", userCode);
             enterDashboard(userCode);
@@ -351,9 +351,7 @@
           kanbanTasks = data.tasks || [];
           renderKanbanTasks();
         }
-      }).catch(err => {
-        console.error("Error loading tasks:", err);
-      });
+      }).catch(err => { console.error("Error loading tasks:", err); });
     }
     function renderKanbanTasks() {
       document.getElementById("todoTasks").innerHTML = "";
@@ -476,6 +474,7 @@
     });
 
     // --- قسم الشات ---
+    // التنقل بين تبويبات لوحة التحكم
     const chatTab = document.getElementById("chatTab");
     const kanbanTab = document.getElementById("kanbanTab");
     const kanbanSection = document.getElementById("kanbanSection");
@@ -569,7 +568,6 @@
           }
           chatMessagesDiv.appendChild(msgDiv);
         });
-        // تمرير الشات لأسفل عند إضافة رسالة جديدة
         chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
       });
     }
