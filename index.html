@@ -2,26 +2,79 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة تحكم متطورة مع Kanban</title>
+  <title>موقع تقني متطور مع تأثيرات هيلوجرام ولوحات Kanban</title>
   <style>
-    /* الإعدادات العامة */
+    /* --- تنسيقات عامة --- */
+    * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
       direction: rtl;
-      margin: 0;
-      padding: 0;
-      background-color: #f0f0f0;
+      background-color: #121212;
+      color: #f0f0f0;
+      line-height: 1.6;
     }
+    a { color: #4285F4; text-decoration: none; }
+    .hidden { display: none; }
+
+    /* --- رأس الموقع مع خلفية تقنية وتأثير هيلوجرام --- */
+    header.header {
+      position: relative;
+      width: 100%;
+      height: 250px;
+      background: url('https://source.unsplash.com/1600x900/?technology') no-repeat center/cover;
+      overflow: hidden;
+    }
+    header.header .overlay {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 20px;
+    }
+    header.header .hologram {
+      font-size: 2.5rem;
+      font-weight: bold;
+      color: #0ff;
+      text-shadow: 0 0 10px rgba(0,255,255,0.7), 0 0 20px rgba(0,255,255,0.5);
+      animation: flicker 1.5s infinite alternate;
+    }
+    @keyframes flicker {
+      0%   { opacity: 0.8; }
+      50%  { opacity: 1; }
+      100% { opacity: 0.7; }
+    }
+    header.header p {
+      font-size: 1.2rem;
+      margin-top: 10px;
+      color: #ddd;
+    }
+
+    /* --- الحاويات الأساسية --- */
     .container {
       max-width: 800px;
+      background: #1e1e1e;
       margin: 20px auto;
-      background: #fff;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
       text-align: center;
     }
-    .hidden { display: none; }
+    input[type="text"],
+    input[type="password"],
+    input[type="number"],
+    input[type="email"] {
+      width: 90%;
+      padding: 10px;
+      margin: 10px auto;
+      border: none;
+      border-radius: 4px;
+      display: block;
+      font-size: 1rem;
+    }
     button {
       padding: 10px 15px;
       margin-top: 10px;
@@ -29,39 +82,35 @@
       border-radius: 4px;
       background-color: #4285F4;
       color: #fff;
+      font-size: 1rem;
       cursor: pointer;
+      transition: background-color 0.3s;
     }
     button:hover { background-color: #357ae8; }
-    input[type="text"],
-    input[type="password"],
-    input[type="number"] {
-      width: 90%;
-      padding: 10px;
-      margin: 10px auto;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      display: block;
-    }
     .link {
-      color: #007bff;
-      text-decoration: underline;
-      cursor: pointer;
       margin-top: 10px;
       display: block;
+      cursor: pointer;
+      color: #4285F4;
     }
-    /* شاشات تسجيل الدخول */
-    #googleSignInContainer, #codeContainer {
-      max-width: 400px;
-      margin: 40px auto;
+    .auth-tabs { display: flex; justify-content: center; margin-bottom: 10px; }
+    .auth-tabs button {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      padding: 10px 15px;
+      color: #f0f0f0;
+      border-bottom: 2px solid transparent;
+      cursor: pointer;
     }
-    /* تنسيق لوحة التحكم */
-    #dashboardContainer {
-      max-width: 900px;
-    }
+    .auth-tabs button.active { border-color: #4285F4; color: #4285F4; }
+
+    /* --- لوحة التحكم --- */
+    #dashboardContainer { max-width: 900px; }
     .nav {
       display: flex;
       justify-content: space-around;
-      background: #f5f5f5;
+      background: #2a2a2a;
       padding: 10px;
       border-radius: 4px;
       margin-bottom: 20px;
@@ -69,8 +118,8 @@
     .nav button {
       background: none;
       border: none;
-      font-size: 16px;
-      color: #333;
+      font-size: 1rem;
+      color: #f0f0f0;
       cursor: pointer;
       padding: 10px;
     }
@@ -79,13 +128,10 @@
       color: #4285F4;
       border-bottom: 2px solid #4285F4;
     }
-    .section {
-      display: none;
-    }
-    .section.active {
-      display: block;
-    }
-    /* تنسيق لوحة Kanban */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* --- تنسيق لوحة Kanban --- */
     #kanbanBoard {
       display: flex;
       justify-content: space-between;
@@ -94,36 +140,29 @@
     }
     .kanban-column {
       flex: 1;
-      background: #e9ecef;
+      background: #2a2a2a;
       border-radius: 4px;
       padding: 10px;
       min-height: 300px;
     }
-    .kanban-column h3 {
-      margin-top: 0;
-    }
+    .kanban-column h3 { margin-top: 0; }
     .kanban-task {
-      background: #fff;
+      background: #121212;
       padding: 10px;
       margin: 10px 0;
       border-radius: 4px;
       cursor: grab;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
     }
-    .kanban-task.dragging {
-      opacity: 0.5;
-    }
-    /* نموذج إضافة مهمة جديدة */
-    #newTaskForm {
-      margin-top: 20px;
-      text-align: left;
-    }
+    .kanban-task.dragging { opacity: 0.5; }
+    #newTaskForm { margin-top: 20px; text-align: left; }
     #newTaskForm input, #newTaskForm textarea {
       width: 100%;
       padding: 8px;
       margin-bottom: 10px;
-      border: 1px solid #ccc;
+      border: none;
       border-radius: 4px;
+      font-size: 0.9rem;
     }
   </style>
   <!-- تضمين مكتبات Firebase -->
@@ -131,24 +170,63 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <!-- شاشة تسجيل الدخول بحساب جوجل -->
-  <div class="container" id="googleSignInContainer">
-    <h2>تسجيل الدخول بحساب جوجل</h2>
-    <button id="googleSignInBtn">سجل الدخول باستخدام جوجل</button>
-    <span class="link" id="switchToCodeLogin">أدخل باستخدام الكود</span>
+  <!-- رأس الموقع مع صورة تقنية وتأثير هيلوجرام -->
+  <header class="header">
+    <div class="overlay">
+      <h1 class="hologram">موقع تقني متطور</h1>
+      <p>ابتكر وطور مشاريعك باستخدام أحدث التقنيات</p>
+    </div>
+  </header>
+
+  <!-- صفحة المصادقة -->
+  <!-- 1. مصادقة البريد الإلكتروني (تسجيل الدخول وإنشاء حساب) -->
+  <div class="container" id="emailAuthContainer">
+    <div class="auth-tabs">
+      <button id="loginTab" class="active">تسجيل الدخول</button>
+      <button id="registerTab">إنشاء حساب</button>
+    </div>
+    <!-- نموذج تسجيل الدخول بالبريد الإلكتروني -->
+    <div id="loginFormContainer" class="auth-section active">
+      <h2>تسجيل الدخول</h2>
+      <form id="emailLoginForm">
+        <input type="email" id="loginEmail" placeholder="البريد الإلكتروني" required>
+        <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
+        <button type="submit">تسجيل الدخول</button>
+      </form>
+    </div>
+    <!-- نموذج إنشاء حساب بالبريد الإلكتروني -->
+    <div id="registerFormContainer" class="auth-section">
+      <h2>إنشاء حساب</h2>
+      <form id="emailRegisterForm">
+        <input type="email" id="registerEmail" placeholder="البريد الإلكتروني" required>
+        <input type="password" id="registerPassword" placeholder="كلمة المرور" required>
+        <button type="submit">إنشاء الحساب</button>
+      </form>
+    </div>
+    <span class="link" id="switchToGoogle">استخدام تسجيل جوجل</span>
+    <span class="link" id="switchToCode">استخدام الكود</span>
   </div>
 
-  <!-- شاشة تسجيل الدخول بواسطة الكود -->
+  <!-- 2. تسجيل الدخول باستخدام جوجل -->
+  <div class="container hidden" id="googleSignInContainer">
+    <h2>تسجيل الدخول بحساب جوجل</h2>
+    <button id="googleSignInBtn">سجل الدخول باستخدام جوجل</button>
+    <span class="link" id="switchToEmailFromGoogle">استخدام البريد الإلكتروني</span>
+    <span class="link" id="switchToCodeFromGoogle">استخدام الكود</span>
+  </div>
+
+  <!-- 3. تسجيل الدخول باستخدام الكود -->
   <div class="container hidden" id="codeContainer">
     <h2>دخول بواسطة الكود</h2>
     <form id="codeForm">
       <input type="number" id="accessCode" placeholder="أدخل الكود" required>
       <button type="submit">دخول</button>
     </form>
-    <span class="link" id="switchToGoogleSignIn">العودة لتسجيل الدخول بحساب جوجل</span>
+    <span class="link" id="switchToEmailFromCode">استخدام البريد الإلكتروني</span>
+    <span class="link" id="switchToGoogleFromCode">استخدام تسجيل جوجل</span>
   </div>
 
-  <!-- لوحة التحكم -->
+  <!-- لوحة التحكم بعد المصادقة -->
   <div class="container hidden" id="dashboardContainer">
     <div class="nav">
       <button id="profileTab" class="active">الملف الشخصي</button>
@@ -203,45 +281,134 @@
       messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
       appId: "YOUR_APP_ID"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // المتغيرات العامة
+    // --- متغيرات الحالة العامة ---
     let validCodes = [];
-    let currentUserMethod = ""; // "google" أو "code"
-    let currentUserData = null; // بيانات المستخدم من جوجل
+    let currentUserMethod = ""; // "email" أو "google" أو "code"
+    let currentUserData = null; // بيانات المستخدم في حال تسجيل الدخول عبر جوجل أو البريد
 
-    // عناصر الواجهة
+    // --- عناصر الواجهة ---
+    // مصادقة البريد الإلكتروني
+    const emailAuthContainer = document.getElementById('emailAuthContainer');
+    const loginTab = document.getElementById('loginTab');
+    const registerTab = document.getElementById('registerTab');
+    const loginFormContainer = document.getElementById('loginFormContainer');
+    const registerFormContainer = document.getElementById('registerFormContainer');
+    const emailLoginForm = document.getElementById('emailLoginForm');
+    const emailRegisterForm = document.getElementById('emailRegisterForm');
+
+    // مصادقة جوجل
     const googleSignInContainer = document.getElementById('googleSignInContainer');
+    const googleSignInBtn = document.getElementById('googleSignInBtn');
+
+    // مصادقة الكود
     const codeContainer = document.getElementById('codeContainer');
+    const codeForm = document.getElementById('codeForm');
+
+    // روابط التبديل بين طرق المصادقة
+    const switchToGoogle = document.getElementById('switchToGoogle');
+    const switchToCode = document.getElementById('switchToCode');
+    const switchToEmailFromGoogle = document.getElementById('switchToEmailFromGoogle');
+    const switchToCodeFromGoogle = document.getElementById('switchToCodeFromGoogle');
+    const switchToEmailFromCode = document.getElementById('switchToEmailFromCode');
+    const switchToGoogleFromCode = document.getElementById('switchToGoogleFromCode');
+
+    // لوحة التحكم
     const dashboardContainer = document.getElementById('dashboardContainer');
     const profileContent = document.getElementById('profileContent');
     const codesList = document.getElementById('codesList');
-
-    // عناصر التنقل
     const profileTab = document.getElementById('profileTab');
     const codesTab = document.getElementById('codesTab');
     const kanbanTab = document.getElementById('kanbanTab');
+
     const profileSection = document.getElementById('profileSection');
     const codesSection = document.getElementById('codesSection');
     const kanbanSection = document.getElementById('kanbanSection');
 
-    // التبديل بين شاشات تسجيل الدخول
-    document.getElementById('switchToCodeLogin').addEventListener('click', () => {
-      googleSignInContainer.classList.add('hidden');
-      codeContainer.classList.remove('hidden');
+    // --- التنقل بين تبويبات المصادقة (لـ email) ---
+    loginTab.addEventListener('click', () => {
+      loginTab.classList.add('active');
+      registerTab.classList.remove('active');
+      loginFormContainer.classList.add('active');
+      registerFormContainer.classList.remove('active');
     });
-    document.getElementById('switchToGoogleSignIn').addEventListener('click', () => {
-      codeContainer.classList.add('hidden');
-      googleSignInContainer.classList.remove('hidden');
+    registerTab.addEventListener('click', () => {
+      registerTab.classList.add('active');
+      loginTab.classList.remove('active');
+      registerFormContainer.classList.add('active');
+      loginFormContainer.classList.remove('active');
     });
 
-    // تسجيل الدخول باستخدام جوجل
-    document.getElementById('googleSignInBtn').addEventListener('click', () => {
+    // --- روابط تبديل طرق المصادقة ---
+    switchToGoogle.addEventListener('click', () => {
+      emailAuthContainer.classList.add('hidden');
+      googleSignInContainer.classList.remove('hidden');
+      codeContainer.classList.add('hidden');
+    });
+    switchToCode.addEventListener('click', () => {
+      emailAuthContainer.classList.add('hidden');
+      codeContainer.classList.remove('hidden');
+      googleSignInContainer.classList.add('hidden');
+    });
+    switchToEmailFromGoogle.addEventListener('click', () => {
+      googleSignInContainer.classList.add('hidden');
+      emailAuthContainer.classList.remove('hidden');
+      codeContainer.classList.add('hidden');
+    });
+    switchToCodeFromGoogle.addEventListener('click', () => {
+      googleSignInContainer.classList.add('hidden');
+      codeContainer.classList.remove('hidden');
+      emailAuthContainer.classList.add('hidden');
+    });
+    switchToEmailFromCode.addEventListener('click', () => {
+      codeContainer.classList.add('hidden');
+      emailAuthContainer.classList.remove('hidden');
+      googleSignInContainer.classList.add('hidden');
+    });
+    switchToGoogleFromCode.addEventListener('click', () => {
+      codeContainer.classList.add('hidden');
+      googleSignInContainer.classList.remove('hidden');
+      emailAuthContainer.classList.add('hidden');
+    });
+
+    // --- مصادقة البريد الإلكتروني ---
+    emailLoginForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      auth.signInWithEmailAndPassword(email, password)
+        .then((result) => {
+          currentUserMethod = "email";
+          currentUserData = result.user;
+          showDashboard();
+        })
+        .catch((error) => {
+          alert("فشل تسجيل الدخول: " + error.message);
+        });
+    });
+
+    emailRegisterForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const email = document.getElementById('registerEmail').value;
+      const password = document.getElementById('registerPassword').value;
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((result) => {
+          currentUserMethod = "email";
+          currentUserData = result.user;
+          showDashboard();
+        })
+        .catch((error) => {
+          alert("فشل إنشاء الحساب: " + error.message);
+        });
+    });
+
+    // --- تسجيل الدخول باستخدام جوجل ---
+    googleSignInBtn.addEventListener('click', () => {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
-        .then(result => {
+        .then((result) => {
           currentUserMethod = "google";
           currentUserData = result.user;
           // توليد كود وحفظه
@@ -249,14 +416,13 @@
           validCodes.push(code);
           showDashboard();
         })
-        .catch(error => {
-          console.error("خطأ في تسجيل الدخول:", error);
-          alert("فشل تسجيل الدخول، حاول مرة أخرى.");
+        .catch((error) => {
+          alert("فشل تسجيل الدخول بجوجل: " + error.message);
         });
     });
 
-    // تسجيل الدخول بواسطة الكود
-    document.getElementById('codeForm').addEventListener('submit', (e) => {
+    // --- تسجيل الدخول بواسطة الكود ---
+    codeForm.addEventListener('submit', (e) => {
       e.preventDefault();
       const inputCode = document.getElementById('accessCode').value;
       if(validCodes.includes(inputCode)) {
@@ -268,24 +434,26 @@
       }
     });
 
-    // دالة توليد كود عشوائي من 6 أرقام
+    // --- دالة توليد كود عشوائي ---
     function generateCode() {
       return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
-    // دالة عرض لوحة التحكم
+    // --- عرض لوحة التحكم ---
     function showDashboard(codeUsed) {
+      // إخفاء صفحات المصادقة
+      emailAuthContainer.classList.add('hidden');
       googleSignInContainer.classList.add('hidden');
       codeContainer.classList.add('hidden');
       dashboardContainer.classList.remove('hidden');
 
-      // تحديث الملف الشخصي
-      if(currentUserMethod === "google" && currentUserData) {
+      // تحديث قسم الملف الشخصي
+      if (currentUserMethod === "google" || currentUserMethod === "email") {
         profileContent.innerHTML = `
-          <p><strong>الاسم:</strong> ${currentUserData.displayName}</p>
           <p><strong>البريد الإلكتروني:</strong> ${currentUserData.email}</p>
-          <img src="${currentUserData.photoURL}" alt="صورة المستخدم" style="width:100px; border-radius:50%;">
-          <p><strong>الكود المولد:</strong> ${validCodes[validCodes.length - 1]}</p>
+          ${ currentUserData.displayName ? `<p><strong>الاسم:</strong> ${currentUserData.displayName}</p>` : '' }
+          ${ currentUserData.photoURL ? `<img src="${currentUserData.photoURL}" alt="صورة المستخدم" style="width:100px; border-radius:50%;">` : '' }
+          <p><strong>الكود المولد:</strong> ${validCodes[validCodes.length - 1] || "لم يُولد بعد"}</p>
         `;
       } else {
         profileContent.innerHTML = `
@@ -296,7 +464,7 @@
       loadKanbanTasks();
     }
 
-    // تحديث قائمة الأكواد في قسم إدارة الأكواد
+    // --- تحديث قائمة الأكواد ---
     function updateCodesList() {
       codesList.innerHTML = "";
       validCodes.forEach((code, index) => {
@@ -306,7 +474,7 @@
       });
     }
 
-    // التنقل بين أقسام لوحة التحكم
+    // --- التنقل بين أقسام لوحة التحكم ---
     profileTab.addEventListener('click', () => {
       profileTab.classList.add('active');
       codesTab.classList.remove('active');
@@ -332,43 +500,35 @@
       codesSection.classList.remove('active');
     });
 
-    // تسجيل الخروج وإعادة تعيين التطبيق
+    // --- تسجيل الخروج ---
     document.getElementById('logoutBtn').addEventListener('click', () => {
-      if(currentUserMethod === "google") {
-        auth.signOut().then(resetApp).catch(error => console.error("خطأ في تسجيل الخروج:", error));
+      if (currentUserMethod === "google" || currentUserMethod === "email") {
+        auth.signOut().then(resetApp).catch((error) => alert("خطأ أثناء تسجيل الخروج: " + error.message));
       } else {
         resetApp();
       }
     });
     function resetApp() {
       dashboardContainer.classList.add('hidden');
-      googleSignInContainer.classList.remove('hidden');
+      emailAuthContainer.classList.remove('hidden');
       document.getElementById('accessCode').value = "";
       validCodes = [];
       currentUserMethod = "";
       currentUserData = null;
-      // إعادة تعيين مهام Kanban
       localStorage.removeItem("kanbanTasks");
     }
 
     // --- قسم لوحة Kanban ---
-    // تحميل المهام من localStorage
     let kanbanTasks = JSON.parse(localStorage.getItem("kanbanTasks")) || [];
-
-    // دالة لحفظ المهام
     function saveKanbanTasks() {
       localStorage.setItem("kanbanTasks", JSON.stringify(kanbanTasks));
     }
-
-    // دالة لإنشاء عنصر مهمة
     function createTaskElement(task) {
       const div = document.createElement('div');
       div.classList.add('kanban-task');
       div.setAttribute('draggable', true);
       div.dataset.id = task.id;
       div.innerHTML = `<strong>${task.title}</strong><p>${task.desc}</p>`;
-      
-      // أحداث السحب والإفلات
       div.addEventListener('dragstart', (e) => {
         e.dataTransfer.setData('text/plain', task.id);
         div.classList.add('dragging');
@@ -378,32 +538,26 @@
       });
       return div;
     }
-
-    // تحميل وعرض المهام في لوحة Kanban
     function loadKanbanTasks() {
-      // مسح الحاويات
       document.getElementById('todoTasks').innerHTML = "";
       document.getElementById('inProgressTasks').innerHTML = "";
       document.getElementById('doneTasks').innerHTML = "";
-
       kanbanTasks.forEach(task => {
         const taskEl = createTaskElement(task);
-        if(task.status === "todo") {
+        if (task.status === "todo") {
           document.getElementById('todoTasks').appendChild(taskEl);
-        } else if(task.status === "inProgress") {
+        } else if (task.status === "inProgress") {
           document.getElementById('inProgressTasks').appendChild(taskEl);
-        } else if(task.status === "done") {
+        } else if (task.status === "done") {
           document.getElementById('doneTasks').appendChild(taskEl);
         }
       });
     }
-
-    // نموذج إضافة مهمة جديدة
     document.getElementById('newTaskForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const title = document.getElementById('taskTitle').value.trim();
       const desc = document.getElementById('taskDesc').value.trim();
-      if(title !== "") {
+      if (title !== "") {
         const newTask = {
           id: Date.now().toString(),
           title: title,
@@ -416,21 +570,15 @@
         this.reset();
       }
     });
-
-    // إعداد أحداث السحب والإفلات في أعمدة Kanban
     const kanbanColumns = document.querySelectorAll('.kanban-column');
     kanbanColumns.forEach(column => {
-      column.addEventListener('dragover', (e) => {
-        e.preventDefault();
-      });
+      column.addEventListener('dragover', (e) => { e.preventDefault(); });
       column.addEventListener('drop', (e) => {
         e.preventDefault();
         const taskId = e.dataTransfer.getData('text/plain');
         const newStatus = column.getAttribute('data-status');
         kanbanTasks = kanbanTasks.map(task => {
-          if(task.id === taskId) {
-            task.status = newStatus;
-          }
+          if (task.id === taskId) { task.status = newStatus; }
           return task;
         });
         saveKanbanTasks();
