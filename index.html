@@ -2,9 +2,9 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>لوحة التحكم المتطورة</title>
+  <title>لوحة تحكم متطورة مع Kanban</title>
   <style>
-    /* تنسيق عام */
+    /* الإعدادات العامة */
     body {
       font-family: Arial, sans-serif;
       direction: rtl;
@@ -13,7 +13,7 @@
       background-color: #f0f0f0;
     }
     .container {
-      max-width: 500px;
+      max-width: 800px;
       margin: 20px auto;
       background: #fff;
       border-radius: 8px;
@@ -21,11 +21,8 @@
       padding: 20px;
       text-align: center;
     }
-    .hidden {
-      display: none;
-    }
+    .hidden { display: none; }
     button {
-      display: inline-block;
       padding: 10px 15px;
       margin-top: 10px;
       border: none;
@@ -34,17 +31,16 @@
       color: #fff;
       cursor: pointer;
     }
-    button:hover {
-      background-color: #357ae8;
-    }
-    input[type="number"],
+    button:hover { background-color: #357ae8; }
     input[type="text"],
-    input[type="password"] {
-      width: 100%;
+    input[type="password"],
+    input[type="number"] {
+      width: 90%;
       padding: 10px;
-      margin: 10px 0;
+      margin: 10px auto;
       border: 1px solid #ccc;
       border-radius: 4px;
+      display: block;
     }
     .link {
       color: #007bff;
@@ -53,9 +49,14 @@
       margin-top: 10px;
       display: block;
     }
+    /* شاشات تسجيل الدخول */
+    #googleSignInContainer, #codeContainer {
+      max-width: 400px;
+      margin: 40px auto;
+    }
     /* تنسيق لوحة التحكم */
     #dashboardContainer {
-      padding: 10px;
+      max-width: 900px;
     }
     .nav {
       display: flex;
@@ -71,16 +72,58 @@
       font-size: 16px;
       color: #333;
       cursor: pointer;
+      padding: 10px;
     }
     .nav button.active {
       font-weight: bold;
       color: #4285F4;
+      border-bottom: 2px solid #4285F4;
     }
     .section {
       display: none;
     }
     .section.active {
       display: block;
+    }
+    /* تنسيق لوحة Kanban */
+    #kanbanBoard {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-top: 20px;
+    }
+    .kanban-column {
+      flex: 1;
+      background: #e9ecef;
+      border-radius: 4px;
+      padding: 10px;
+      min-height: 300px;
+    }
+    .kanban-column h3 {
+      margin-top: 0;
+    }
+    .kanban-task {
+      background: #fff;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      cursor: grab;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .kanban-task.dragging {
+      opacity: 0.5;
+    }
+    /* نموذج إضافة مهمة جديدة */
+    #newTaskForm {
+      margin-top: 20px;
+      text-align: left;
+    }
+    #newTaskForm input, #newTaskForm textarea {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
     }
   </style>
   <!-- تضمين مكتبات Firebase -->
@@ -105,27 +148,48 @@
     <span class="link" id="switchToGoogleSignIn">العودة لتسجيل الدخول بحساب جوجل</span>
   </div>
 
-  <!-- لوحة التحكم المتطورة بعد تسجيل الدخول -->
+  <!-- لوحة التحكم -->
   <div class="container hidden" id="dashboardContainer">
     <div class="nav">
       <button id="profileTab" class="active">الملف الشخصي</button>
       <button id="codesTab">إدارة الأكواد</button>
+      <button id="kanbanTab">لوحة Kanban</button>
       <button id="logoutBtn">تسجيل الخروج</button>
     </div>
     <!-- قسم الملف الشخصي -->
     <div id="profileSection" class="section active">
       <h2>الملف الشخصي</h2>
-      <div id="profileContent">
-        <!-- ستظهر معلومات المستخدم هنا -->
-      </div>
+      <div id="profileContent"></div>
     </div>
     <!-- قسم إدارة الأكواد -->
     <div id="codesSection" class="section">
       <h2>إدارة الأكواد</h2>
       <button id="generateCodeBtn">توليد كود جديد</button>
-      <ul id="codesList">
-        <!-- قائمة الأكواد -->
-      </ul>
+      <ul id="codesList"></ul>
+    </div>
+    <!-- قسم لوحة Kanban -->
+    <div id="kanbanSection" class="section">
+      <h2>لوحة Kanban</h2>
+      <!-- نموذج إضافة مهمة جديدة -->
+      <form id="newTaskForm">
+        <input type="text" id="taskTitle" placeholder="عنوان المهمة" required>
+        <textarea id="taskDesc" placeholder="وصف المهمة" rows="2"></textarea>
+        <button type="submit">إضافة المهمة</button>
+      </form>
+      <div id="kanbanBoard">
+        <div class="kanban-column" data-status="todo">
+          <h3>مهام للقيام بها</h3>
+          <div class="taskContainer" id="todoTasks"></div>
+        </div>
+        <div class="kanban-column" data-status="inProgress">
+          <h3>قيد التنفيذ</h3>
+          <div class="taskContainer" id="inProgressTasks"></div>
+        </div>
+        <div class="kanban-column" data-status="done">
+          <h3>منتهية</h3>
+          <div class="taskContainer" id="doneTasks"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -143,15 +207,10 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // المتغيرات لإدارة حالة تسجيل الدخول
+    // المتغيرات العامة
     let validCodes = [];
     let currentUserMethod = ""; // "google" أو "code"
-    let currentUserData = null; // بيانات المستخدم في حال تسجيل الدخول بجوجل
-
-    // دالة لتوليد كود عشوائي من 6 أرقام
-    function generateCode() {
-      return Math.floor(100000 + Math.random() * 900000).toString();
-    }
+    let currentUserData = null; // بيانات المستخدم من جوجل
 
     // عناصر الواجهة
     const googleSignInContainer = document.getElementById('googleSignInContainer');
@@ -160,47 +219,59 @@
     const profileContent = document.getElementById('profileContent');
     const codesList = document.getElementById('codesList');
 
-    // التنقل بين شاشات تسجيل الدخول
-    document.getElementById('switchToCodeLogin').addEventListener('click', function() {
+    // عناصر التنقل
+    const profileTab = document.getElementById('profileTab');
+    const codesTab = document.getElementById('codesTab');
+    const kanbanTab = document.getElementById('kanbanTab');
+    const profileSection = document.getElementById('profileSection');
+    const codesSection = document.getElementById('codesSection');
+    const kanbanSection = document.getElementById('kanbanSection');
+
+    // التبديل بين شاشات تسجيل الدخول
+    document.getElementById('switchToCodeLogin').addEventListener('click', () => {
       googleSignInContainer.classList.add('hidden');
       codeContainer.classList.remove('hidden');
     });
-    document.getElementById('switchToGoogleSignIn').addEventListener('click', function() {
+    document.getElementById('switchToGoogleSignIn').addEventListener('click', () => {
       codeContainer.classList.add('hidden');
       googleSignInContainer.classList.remove('hidden');
     });
 
     // تسجيل الدخول باستخدام جوجل
-    document.getElementById('googleSignInBtn').addEventListener('click', function() {
+    document.getElementById('googleSignInBtn').addEventListener('click', () => {
       const provider = new firebase.auth.GoogleAuthProvider();
       auth.signInWithPopup(provider)
-        .then((result) => {
+        .then(result => {
           currentUserMethod = "google";
           currentUserData = result.user;
           // توليد كود وحفظه
           const code = generateCode();
           validCodes.push(code);
-          // الانتقال إلى لوحة التحكم
           showDashboard();
         })
-        .catch((error) => {
-          console.error("حدث خطأ أثناء تسجيل الدخول بجوجل:", error);
-          alert("فشل تسجيل الدخول. الرجاء المحاولة مرة أخرى.");
+        .catch(error => {
+          console.error("خطأ في تسجيل الدخول:", error);
+          alert("فشل تسجيل الدخول، حاول مرة أخرى.");
         });
     });
 
     // تسجيل الدخول بواسطة الكود
-    document.getElementById('codeForm').addEventListener('submit', function(e) {
+    document.getElementById('codeForm').addEventListener('submit', (e) => {
       e.preventDefault();
       const inputCode = document.getElementById('accessCode').value;
       if(validCodes.includes(inputCode)) {
         currentUserMethod = "code";
-        currentUserData = null; // لا توجد بيانات مستخدم فعلية عند الدخول بواسطة الكود
+        currentUserData = null;
         showDashboard(inputCode);
       } else {
-        alert("الكود غير صحيح. الرجاء المحاولة مرة أخرى.");
+        alert("الكود غير صحيح، حاول مرة أخرى.");
       }
     });
+
+    // دالة توليد كود عشوائي من 6 أرقام
+    function generateCode() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
 
     // دالة عرض لوحة التحكم
     function showDashboard(codeUsed) {
@@ -208,7 +279,7 @@
       codeContainer.classList.add('hidden');
       dashboardContainer.classList.remove('hidden');
 
-      // تحديث قسم الملف الشخصي
+      // تحديث الملف الشخصي
       if(currentUserMethod === "google" && currentUserData) {
         profileContent.innerHTML = `
           <p><strong>الاسم:</strong> ${currentUserData.displayName}</p>
@@ -218,16 +289,17 @@
         `;
       } else {
         profileContent.innerHTML = `
-          <p>مرحباً زميل! لقد تم الدخول باستخدام الكود: <strong>${codeUsed}</strong></p>
+          <p>مرحباً! لقد تم الدخول باستخدام الكود: <strong>${codeUsed}</strong></p>
         `;
       }
       updateCodesList();
+      loadKanbanTasks();
     }
 
     // تحديث قائمة الأكواد في قسم إدارة الأكواد
     function updateCodesList() {
       codesList.innerHTML = "";
-      validCodes.forEach(function(code, index) {
+      validCodes.forEach((code, index) => {
         const li = document.createElement('li');
         li.textContent = `الكود ${index + 1}: ${code}`;
         codesList.appendChild(li);
@@ -235,55 +307,39 @@
     }
 
     // التنقل بين أقسام لوحة التحكم
-    const profileTab = document.getElementById('profileTab');
-    const codesTab = document.getElementById('codesTab');
-    const profileSection = document.getElementById('profileSection');
-    const codesSection = document.getElementById('codesSection');
-
-    profileTab.addEventListener('click', function() {
+    profileTab.addEventListener('click', () => {
       profileTab.classList.add('active');
       codesTab.classList.remove('active');
+      kanbanTab.classList.remove('active');
       profileSection.classList.add('active');
+      codesSection.classList.remove('active');
+      kanbanSection.classList.remove('active');
+    });
+    codesTab.addEventListener('click', () => {
+      codesTab.classList.add('active');
+      profileTab.classList.remove('active');
+      kanbanTab.classList.remove('active');
+      codesSection.classList.add('active');
+      profileSection.classList.remove('active');
+      kanbanSection.classList.remove('active');
+    });
+    kanbanTab.addEventListener('click', () => {
+      kanbanTab.classList.add('active');
+      profileTab.classList.remove('active');
+      codesTab.classList.remove('active');
+      kanbanSection.classList.add('active');
+      profileSection.classList.remove('active');
       codesSection.classList.remove('active');
     });
 
-    codesTab.addEventListener('click', function() {
-      codesTab.classList.add('active');
-      profileTab.classList.remove('active');
-      codesSection.classList.add('active');
-      profileSection.classList.remove('active');
-    });
-
-    // توليد كود جديد من قسم إدارة الأكواد
-    document.getElementById('generateCodeBtn').addEventListener('click', function() {
-      const newCode = generateCode();
-      validCodes.push(newCode);
-      updateCodesList();
-      // تحديث عرض الكود في الملف الشخصي إذا كان المستخدم جوجل
-      if(currentUserMethod === "google" && currentUserData) {
-        profileContent.innerHTML = `
-          <p><strong>الاسم:</strong> ${currentUserData.displayName}</p>
-          <p><strong>البريد الإلكتروني:</strong> ${currentUserData.email}</p>
-          <img src="${currentUserData.photoURL}" alt="صورة المستخدم" style="width:100px; border-radius:50%;">
-          <p><strong>آخر كود مولد:</strong> ${newCode}</p>
-        `;
-      }
-    });
-
     // تسجيل الخروج وإعادة تعيين التطبيق
-    document.getElementById('logoutBtn').addEventListener('click', function() {
+    document.getElementById('logoutBtn').addEventListener('click', () => {
       if(currentUserMethod === "google") {
-        auth.signOut().then(() => {
-          resetApp();
-        }).catch((error) => {
-          console.error("حدث خطأ أثناء تسجيل الخروج:", error);
-        });
+        auth.signOut().then(resetApp).catch(error => console.error("خطأ في تسجيل الخروج:", error));
       } else {
         resetApp();
       }
     });
-
-    // إعادة تعيين حالة التطبيق للعودة لشاشة تسجيل الدخول
     function resetApp() {
       dashboardContainer.classList.add('hidden');
       googleSignInContainer.classList.remove('hidden');
@@ -291,8 +347,96 @@
       validCodes = [];
       currentUserMethod = "";
       currentUserData = null;
+      // إعادة تعيين مهام Kanban
+      localStorage.removeItem("kanbanTasks");
     }
+
+    // --- قسم لوحة Kanban ---
+    // تحميل المهام من localStorage
+    let kanbanTasks = JSON.parse(localStorage.getItem("kanbanTasks")) || [];
+
+    // دالة لحفظ المهام
+    function saveKanbanTasks() {
+      localStorage.setItem("kanbanTasks", JSON.stringify(kanbanTasks));
+    }
+
+    // دالة لإنشاء عنصر مهمة
+    function createTaskElement(task) {
+      const div = document.createElement('div');
+      div.classList.add('kanban-task');
+      div.setAttribute('draggable', true);
+      div.dataset.id = task.id;
+      div.innerHTML = `<strong>${task.title}</strong><p>${task.desc}</p>`;
+      
+      // أحداث السحب والإفلات
+      div.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', task.id);
+        div.classList.add('dragging');
+      });
+      div.addEventListener('dragend', () => {
+        div.classList.remove('dragging');
+      });
+      return div;
+    }
+
+    // تحميل وعرض المهام في لوحة Kanban
+    function loadKanbanTasks() {
+      // مسح الحاويات
+      document.getElementById('todoTasks').innerHTML = "";
+      document.getElementById('inProgressTasks').innerHTML = "";
+      document.getElementById('doneTasks').innerHTML = "";
+
+      kanbanTasks.forEach(task => {
+        const taskEl = createTaskElement(task);
+        if(task.status === "todo") {
+          document.getElementById('todoTasks').appendChild(taskEl);
+        } else if(task.status === "inProgress") {
+          document.getElementById('inProgressTasks').appendChild(taskEl);
+        } else if(task.status === "done") {
+          document.getElementById('doneTasks').appendChild(taskEl);
+        }
+      });
+    }
+
+    // نموذج إضافة مهمة جديدة
+    document.getElementById('newTaskForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const title = document.getElementById('taskTitle').value.trim();
+      const desc = document.getElementById('taskDesc').value.trim();
+      if(title !== "") {
+        const newTask = {
+          id: Date.now().toString(),
+          title: title,
+          desc: desc,
+          status: "todo"
+        };
+        kanbanTasks.push(newTask);
+        saveKanbanTasks();
+        loadKanbanTasks();
+        this.reset();
+      }
+    });
+
+    // إعداد أحداث السحب والإفلات في أعمدة Kanban
+    const kanbanColumns = document.querySelectorAll('.kanban-column');
+    kanbanColumns.forEach(column => {
+      column.addEventListener('dragover', (e) => {
+        e.preventDefault();
+      });
+      column.addEventListener('drop', (e) => {
+        e.preventDefault();
+        const taskId = e.dataTransfer.getData('text/plain');
+        const newStatus = column.getAttribute('data-status');
+        kanbanTasks = kanbanTasks.map(task => {
+          if(task.id === taskId) {
+            task.status = newStatus;
+          }
+          return task;
+        });
+        saveKanbanTasks();
+        loadKanbanTasks();
+      });
+    });
   </script>
 </body>
 </html>
-
