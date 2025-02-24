@@ -2,9 +2,13 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>مشاريعك التقنية - نظام الكود مع Kanban وشات</title>
+  <title>مشاريعك التقنية - منصة متطورة للمبرمجين</title>
+  <!-- تضمين CSS لمكتبة CodeMirror -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.css">
+  <!-- تضمين CSS لـ highlight.js -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/default.min.css">
   <style>
-    /* --- التنسيقات العامة --- */
+    /* التنسيقات العامة */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
@@ -20,11 +24,13 @@
       margin: 20px auto;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.6);
       text-align: center;
     }
-    input[type="number"],
     input[type="text"],
+    input[type="email"],
+    input[type="password"],
+    input[type="number"],
     input[type="file"],
     textarea {
       width: 90%;
@@ -48,23 +54,20 @@
       transition: background-color 0.3s;
     }
     button:hover { background-color: #357ae8; }
-    .error-message {
-      color: #ff6b6b;
-      margin-top: 10px;
-      font-weight: bold;
-    }
-    /* --- رأس الموقع مع هيلوجرامات متعددة --- */
+    .error-message { color: #ff6b6b; margin-top: 10px; font-weight: bold; }
+    /* رأس الموقع مع هيلوجرامات متعددة */
     header.header {
       position: relative;
       width: 100%;
       height: 300px;
       background: url('https://source.unsplash.com/1600x900/?technology') no-repeat center/cover;
       overflow: hidden;
+      margin-bottom: 20px;
     }
     header.header .overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
+      background: rgba(0,0,0,0.6);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -94,17 +97,17 @@
       animation: flicker 1.8s infinite alternate;
     }
     @keyframes flicker {
-      0%   { opacity: 0.8; }
-      50%  { opacity: 1; }
+      0% { opacity: 0.8; }
+      50% { opacity: 1; }
       100% { opacity: 0.7; }
     }
-    /* --- صفحة البداية --- */
-    #landingContainer p { margin: 10px 0; }
-    #userCodeDisplay { font-size: 2rem; margin: 20px 0; }
-    /* --- لوحة التحكم --- */
-    #dashboardContainer { max-width: 900px; }
+    /* نموذج التسجيل والدخول */
+    #authContainer { max-width: 400px; margin: 20px auto; }
+    #authContainer form { margin-bottom: 20px; }
+    /* لوحة التحكم */
     .nav {
       display: flex;
+      flex-wrap: wrap;
       justify-content: space-around;
       background: #2a2a2a;
       padding: 10px;
@@ -118,6 +121,7 @@
       color: #f0f0f0;
       cursor: pointer;
       padding: 10px;
+      margin: 5px;
     }
     .nav button.active {
       font-weight: bold;
@@ -126,7 +130,7 @@
     }
     .section { display: none; }
     .section.active { display: block; }
-    /* --- لوحة Kanban --- */
+    /* لوحة Kanban */
     #kanbanBoard {
       display: flex;
       justify-content: space-between;
@@ -163,15 +167,15 @@
       border: 1px solid #444;
       border-radius: 4px;
     }
-    /* --- قسم الشات --- */
+    /* قسم الشات */
     #chatContainer {
       text-align: left;
-      max-width: 800px;
+      max-width: 600px;
       margin: 20px auto;
       background: #1e1e1e;
       padding: 20px;
       border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.6);
     }
     #chatMessages {
       max-height: 300px;
@@ -190,50 +194,80 @@
       color: #4285F4;
     }
     .chat-message p { margin: 5px 0; }
-    #chatForm input[type="text"] {
-      width: calc(100% - 120px);
-      display: inline-block;
+    #chatForm input[type="text"] { width: calc(100% - 120px); display: inline-block; }
+    #chatForm input[type="file"] { display: inline-block; width: calc(100% - 120px); }
+    #chatForm button { width: 100px; display: inline-block; }
+    /* قسم Code Snippets */
+    #snippetsSection form, #docsSection form { text-align: left; }
+    #snippetsList, #docsList { margin-top: 20px; text-align: left; }
+    .snippet, .doc {
+      background: #1a1a1a;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 4px;
     }
-    #chatForm input[type="file"] {
-      display: inline-block;
-      width: calc(100% - 120px);
-    }
-    #chatForm button {
-      width: 100px;
-      display: inline-block;
-    }
+    pre { background: #000; padding: 10px; overflow-x: auto; }
+    /* قسم المحرر */
+    #editorSection { text-align: left; }
+    #codeEditor { height: 300px; border: 1px solid #444; }
   </style>
-  <!-- تضمين مكتبات Firebase وFirestore -->
+  <!-- تضمين مكتبات Firebase -->
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore-compat.js"></script>
+  <!-- تضمين مكتبة highlight.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- تضمين مكتبة marked.js لتحويل Markdown -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/4.3.0/marked.min.js"></script>
+  <!-- تضمين مكتبة CodeMirror -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/codemirror.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.9/mode/javascript/javascript.min.js"></script>
 </head>
 <body>
-  <!-- رأس الموقع مع هيلوجرامات متعددة -->
+  <!-- رأس الموقع -->
   <header class="header">
     <div class="overlay">
       <h1 class="hologram">مشاريعك التقنية</h1>
       <h2 class="hologram secondary">ابدأ رحلتك الإبداعية</h2>
       <h3 class="hologram tertiary">حلول مستقبلية بلمسة فنية</h3>
-      <p>ابتكر وطوّر مشاريعك باستخدام أحدث التقنيات</p>
+      <p>سجل حسابك وشارك الأفكار والمشاريع مع زملائك</p>
     </div>
   </header>
 
-  <!-- صفحة البداية: عرض الكود العشوائي -->
-  <div class="container" id="landingContainer">
-    <h2>مرحباً بك</h2>
-    <p>الكود الخاص بك:</p>
-    <div id="userCodeDisplay"></div>
-    <p>احفظ الكود عشان ترجع لمشاريعك</p>
-    <input type="number" id="codeInput" placeholder="أدخل كود صديقك أو كودك">
-    <button id="enterDashboardBtn">دخول المشاريع</button>
-    <div id="codeError" class="error-message"></div>
+  <!-- صفحة التسجيل والدخول -->
+  <div class="container" id="authContainer">
+    <!-- نموذج التسجيل -->
+    <div id="registerSection">
+      <h2>تسجيل جديد</h2>
+      <form id="registerForm">
+        <input type="text" id="regName" placeholder="اسمك" required>
+        <input type="email" id="regEmail" placeholder="الإيميل" required>
+        <input type="password" id="regPassword" placeholder="كلمة السر" required>
+        <button type="submit">إنشاء الحساب</button>
+      </form>
+      <div id="registerError" class="error-message"></div>
+    </div>
+    <hr>
+    <!-- نموذج تسجيل الدخول -->
+    <div id="loginSection">
+      <h2>تسجيل الدخول</h2>
+      <form id="loginForm">
+        <input type="email" id="loginEmail" placeholder="الإيميل" required>
+        <input type="password" id="loginPassword" placeholder="كلمة السر" required>
+        <button type="submit">دخول</button>
+      </form>
+      <div id="loginError" class="error-message"></div>
+    </div>
   </div>
 
-  <!-- لوحة التحكم (Dashboard) -->
+  <!-- لوحة التحكم -->
   <div class="container hidden" id="dashboardContainer">
     <div class="nav">
-      <button id="kanbanTab" class="active">لوحة Kanban</button>
+      <button id="kanbanTab" class="active">Kanban</button>
       <button id="chatTab">الشات</button>
+      <button id="snippetsTab">Code Snippets</button>
+      <button id="docsTab">Docs</button>
+      <button id="editorTab">Editor</button>
       <button id="logoutBtn">تسجيل الخروج</button>
     </div>
     <!-- قسم Kanban -->
@@ -272,10 +306,37 @@
         </form>
       </div>
     </div>
+    <!-- قسم Code Snippets -->
+    <div id="snippetsSection" class="section hidden">
+      <h2>Code Snippets</h2>
+      <form id="snippetForm">
+        <input type="text" id="snippetTitle" placeholder="عنوان المقتطف" required>
+        <input type="text" id="snippetLanguage" placeholder="لغة الشيفرة (مثال: javascript)" required>
+        <textarea id="snippetCode" placeholder="الصق الشيفرة هنا" rows="5" required></textarea>
+        <button type="submit">أضف المقتطف</button>
+      </form>
+      <div id="snippetsList"></div>
+    </div>
+    <!-- قسم Docs -->
+    <div id="docsSection" class="section hidden">
+      <h2>Documentation</h2>
+      <form id="docForm">
+        <input type="text" id="docTitle" placeholder="عنوان الوثيقة" required>
+        <textarea id="docContent" placeholder="أدخل محتوى الوثيقة (Markdown)" rows="5" required></textarea>
+        <button type="submit">أضف الوثيقة</button>
+      </form>
+      <div id="docsList"></div>
+    </div>
+    <!-- قسم Editor -->
+    <div id="editorSection" class="section hidden">
+      <h2>Collaborative Editor</h2>
+      <div id="codeEditor"></div>
+      <button id="saveEditorBtn">احفظ الشيفرة</button>
+    </div>
   </div>
 
   <script>
-    // إعدادات Firebase – استبدل القيم الخاصة بمشروعك
+    // إعدادات Firebase – استبدل هذه القيم بإعدادات مشروعك
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_AUTH_DOMAIN",
@@ -285,73 +346,134 @@
       appId: "YOUR_APP_ID"
     };
     firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
     const db = firebase.firestore();
 
-    // --- المتغيرات العامة ---
-    let userCode = localStorage.getItem("userCode") || "";
-    let kanbanTasks = []; // سيتم تحميلها من Firestore
+    let currentUser = null;
+    let chatNumber = null; // رقم ترتيب المستخدم في الشات
+    let codeMirrorEditor = null;
 
-    // دالة لإنشاء مستند مستخدم إذا لم يكن موجودًا
-    function createUserIfNotExists(code) {
-      return db.collection("users").doc(code).get().then(doc => {
-        if (!doc.exists) {
-          return db.collection("users").doc(code).set({ tasks: [] });
+    // --- أقسام التنقل في لوحة التحكم ---
+    const sections = {
+      kanban: document.getElementById("kanbanSection"),
+      chat: document.getElementById("chatSection"),
+      snippets: document.getElementById("snippetsSection"),
+      docs: document.getElementById("docsSection"),
+      editor: document.getElementById("editorSection")
+    };
+    const navButtons = {
+      kanban: document.getElementById("kanbanTab"),
+      chat: document.getElementById("chatTab"),
+      snippets: document.getElementById("snippetsTab"),
+      docs: document.getElementById("docsTab"),
+      editor: document.getElementById("editorTab")
+    };
+
+    function showSection(sectionKey) {
+      // إخفاء جميع الأقسام
+      for (let key in sections) {
+        sections[key].classList.remove("active");
+      }
+      // تفعيل القسم المطلوب
+      sections[sectionKey].classList.add("active");
+      // تفعيل الزر في شريط التنقل
+      for (let key in navButtons) {
+        navButtons[key].classList.remove("active");
+      }
+      navButtons[sectionKey].classList.add("active");
+    }
+
+    // التنقل بين الأقسام
+    navButtons.kanban.addEventListener("click", () => showSection("kanban"));
+    navButtons.chat.addEventListener("click", () => showSection("chat"));
+    navButtons.snippets.addEventListener("click", () => { loadSnippets(); showSection("snippets"); });
+    navButtons.docs.addEventListener("click", () => { loadDocs(); showSection("docs"); });
+    navButtons.editor.addEventListener("click", () => { loadEditorContent(); showSection("editor"); });
+
+    // --- نموذج التسجيل والدخول ---
+    document.getElementById("registerForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const name = document.getElementById("regName").value.trim();
+      const email = document.getElementById("regEmail").value.trim();
+      const password = document.getElementById("regPassword").value;
+      document.getElementById("registerError").textContent = "";
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(result => {
+          currentUser = result.user;
+          return currentUser.updateProfile({ displayName: name });
+        })
+        .then(() => assignChatNumber())
+        .then(() => {
+          // إنشاء مستند المستخدم في "users"
+          return db.collection("users").doc(currentUser.uid).set({ editorContent: "" }, { merge: true });
+        })
+        .then(() => { enterDashboard(); })
+        .catch(err => {
+          console.error("Registration Error:", err);
+          document.getElementById("registerError").textContent = err.message;
+        });
+    });
+
+    document.getElementById("loginForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const email = document.getElementById("loginEmail").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      document.getElementById("loginError").textContent = "";
+      auth.signInWithEmailAndPassword(email, password)
+        .then(result => {
+          currentUser = result.user;
+          assignChatNumber().then(() => { enterDashboard(); });
+        })
+        .catch(err => {
+          console.error("Login Error:", err);
+          document.getElementById("loginError").textContent = err.message;
+        });
+    });
+
+    // --- تعيين رقم الشات للمستخدم ---
+    function assignChatNumber() {
+      const participantRef = db.collection("chatParticipants").doc(currentUser.uid);
+      return participantRef.get().then(doc => {
+        if (doc.exists) {
+          chatNumber = doc.data().chatNumber;
+        } else {
+          return db.collection("chatParticipants").get().then(snapshot => {
+            chatNumber = snapshot.size + 1;
+            return participantRef.set({
+              chatNumber: chatNumber,
+              displayName: currentUser.displayName || currentUser.email
+            });
+          });
         }
       });
     }
 
-    // إذا لم يكن هناك كود في localStorage، قم بتوليد واحد وحفظه وإنشاء المستند في Firestore
-    if (!userCode) {
-      userCode = Math.floor(100000 + Math.random() * 900000).toString();
-      localStorage.setItem("userCode", userCode);
-      createUserIfNotExists(userCode);
-    } else {
-      createUserIfNotExists(userCode);
+    // --- دخول لوحة التحكم ---
+    function enterDashboard() {
+      document.getElementById("authContainer").classList.add("hidden");
+      document.getElementById("dashboardContainer").classList.remove("hidden");
+      // تهيئة الشات والـ Kanban
+      initChatListener();
+      loadKanbanTasks();
+      // تهيئة محرر CodeMirror عند الدخول لقسم Editor لاحقاً
     }
-    document.getElementById("userCodeDisplay").textContent = userCode;
 
-    // عند الضغط على زر "دخول المشاريع"
-    document.getElementById("enterDashboardBtn").addEventListener("click", function() {
-      const inputCode = document.getElementById("codeInput").value.trim();
-      const errorDiv = document.getElementById("codeError");
-      errorDiv.textContent = "";
-      // إذا أدخلت كودك الخاص، أو إذا أدخلت كود صديق موجود
-      if (inputCode === userCode) {
-        enterDashboard(userCode);
-      } else {
-        db.collection("users").doc(inputCode).get().then(doc => {
-          if (doc.exists) {
-            // تحديث localStorage ليصبح الكود هو كود الجلسة المشتركة
-            userCode = inputCode;
-            localStorage.setItem("userCode", userCode);
-            enterDashboard(userCode);
-          } else {
-            errorDiv.textContent = "الكود المدخل غير صحيح، حاول مرة أخرى.";
-          }
-        }).catch(err => {
-          errorDiv.textContent = "حدث خطأ أثناء التحقق من الكود.";
-          console.error(err);
-        });
-      }
+    // --- تسجيل الخروج ---
+    document.getElementById("logoutBtn").addEventListener("click", function() {
+      auth.signOut().then(() => location.reload())
+        .catch(err => console.error("Logout Error:", err));
     });
 
-    // دالة للدخول إلى لوحة التحكم
-    function enterDashboard(code) {
-      document.getElementById("landingContainer").classList.add("hidden");
-      document.getElementById("dashboardContainer").classList.remove("hidden");
-      loadKanbanTasks();
-      initChatListener();
-    }
-
-    // --- لوحة Kanban ---
+    // --- قسم Kanban (مهام) ---
+    let kanbanTasks = [];
     function loadKanbanTasks() {
-      db.collection("users").doc(userCode).get().then(doc => {
+      db.collection("users").doc(currentUser.uid).get().then(doc => {
         if (doc.exists) {
           const data = doc.data();
           kanbanTasks = data.tasks || [];
           renderKanbanTasks();
         }
-      }).catch(err => { console.error("Error loading tasks:", err); });
+      }).catch(err => console.error("Error loading tasks:", err));
     }
     function renderKanbanTasks() {
       document.getElementById("todoTasks").innerHTML = "";
@@ -369,9 +491,9 @@
       });
     }
     function saveKanbanTasks() {
-      db.collection("users").doc(userCode).set({ tasks: kanbanTasks }, { merge: true })
-        .then(() => { renderKanbanTasks(); })
-        .catch(err => { console.error("Error saving tasks:", err); });
+      db.collection("users").doc(currentUser.uid).set({ tasks: kanbanTasks }, { merge: true })
+        .then(() => renderKanbanTasks())
+        .catch(err => console.error("Error saving tasks:", err));
     }
     function createTaskElement(task) {
       const div = document.createElement("div");
@@ -474,103 +596,179 @@
     });
 
     // --- قسم الشات ---
-    // التنقل بين تبويبات لوحة التحكم
-    const chatTab = document.getElementById("chatTab");
-    const kanbanTab = document.getElementById("kanbanTab");
-    const kanbanSection = document.getElementById("kanbanSection");
-    const chatSection = document.getElementById("chatSection");
-
-    chatTab.addEventListener("click", () => {
-      chatTab.classList.add("active");
-      kanbanTab.classList.remove("active");
-      chatSection.classList.remove("hidden");
-      chatSection.classList.add("active");
-      kanbanSection.classList.remove("active");
-    });
-    kanbanTab.addEventListener("click", () => {
-      kanbanTab.classList.add("active");
-      chatTab.classList.remove("active");
-      kanbanSection.classList.add("active");
-      chatSection.classList.remove("active");
-      chatSection.classList.add("hidden");
-    });
-
-    // إرسال رسالة في الشات مع إمكانية إرفاق ملف
     document.getElementById("chatForm").addEventListener("submit", function(e) {
       e.preventDefault();
-      const messageText = document.getElementById("chatMessageInput").value.trim();
+      const text = document.getElementById("chatMessageInput").value.trim();
       const fileInput = document.getElementById("chatFileInput");
       const files = fileInput.files;
-      if(messageText === "" && files.length === 0) return;
+      if(text === "" && files.length === 0) return;
       if(files.length > 0) {
-        let readFilePromises = [];
-        for(let i = 0; i < files.length; i++) {
-          readFilePromises.push(new Promise((resolve, reject) => {
+        let promises = [];
+        for (let i = 0; i < files.length; i++) {
+          promises.push(new Promise((resolve, reject) => {
             const file = files[i];
             const reader = new FileReader();
             reader.onload = function(event) {
               resolve({ fileName: file.name, fileData: event.target.result });
             };
             reader.onerror = function() {
-              reject("خطأ أثناء قراءة الملف: " + file.name);
+              reject("Error reading file: " + file.name);
             };
             reader.readAsDataURL(file);
           }));
         }
-        Promise.all(readFilePromises)
-          .then(results => {
-            sendChatMessage(messageText, results);
-            document.getElementById("chatForm").reset();
-          })
-          .catch(error => { alert("خطأ أثناء معالجة الملفات: " + error); });
+        Promise.all(promises).then(attachments => {
+          sendChatMessage(text, attachments);
+          document.getElementById("chatForm").reset();
+        }).catch(err => { alert(err); });
       } else {
-        sendChatMessage(messageText, []);
+        sendChatMessage(text, []);
         document.getElementById("chatForm").reset();
       }
     });
     function sendChatMessage(text, attachments) {
       const message = {
-        sender: userCode,
+        senderId: currentUser.uid,
+        senderName: currentUser.displayName || currentUser.email,
+        chatNumber: chatNumber,
         text: text,
         attachments: attachments,
         timestamp: firebase.firestore.FieldValue.serverTimestamp()
       };
-      db.collection("chat").add(message).catch(err => { console.error("Error sending message:", err); });
+      db.collection("chatMessages").add(message)
+        .catch(err => { console.error("Error sending message:", err); });
     }
-    // تحديث الشات في الوقت الحقيقي
     function initChatListener() {
-      db.collection("chat").orderBy("timestamp", "asc").onSnapshot(snapshot => {
-        const chatMessagesDiv = document.getElementById("chatMessages");
-        chatMessagesDiv.innerHTML = "";
-        snapshot.forEach(doc => {
-          const msg = doc.data();
-          const msgDiv = document.createElement("div");
-          msgDiv.classList.add("chat-message");
-          msgDiv.innerHTML = `<span class="sender">${msg.sender}:</span> <p>${msg.text || ""}</p>`;
-          if(msg.attachments && msg.attachments.length > 0) {
-            const attachDiv = document.createElement("div");
-            attachDiv.classList.add("task-attachments");
-            msg.attachments.forEach(att => {
-              if(att.fileData.startsWith("data:image/")) {
-                const img = document.createElement("img");
-                img.src = att.fileData;
-                img.alt = att.fileName;
-                attachDiv.appendChild(img);
-              } else {
-                const a = document.createElement("a");
-                a.href = att.fileData;
-                a.download = att.fileName;
-                a.textContent = att.fileName;
-                attachDiv.appendChild(a);
-              }
-            });
-            msgDiv.appendChild(attachDiv);
-          }
-          chatMessagesDiv.appendChild(msgDiv);
+      db.collection("chatMessages").orderBy("timestamp", "asc")
+        .onSnapshot(snapshot => {
+          const chatMessagesDiv = document.getElementById("chatMessages");
+          chatMessagesDiv.innerHTML = "";
+          snapshot.forEach(doc => {
+            const msg = doc.data();
+            const msgDiv = document.createElement("div");
+            msgDiv.classList.add("chat-message");
+            msgDiv.innerHTML = `<span class="sender">${msg.senderName} (${msg.chatNumber}):</span> <p>${msg.text || ""}</p>`;
+            if(msg.attachments && msg.attachments.length > 0) {
+              const attachDiv = document.createElement("div");
+              attachDiv.classList.add("task-attachments");
+              msg.attachments.forEach(att => {
+                if(att.fileData.startsWith("data:image/")) {
+                  const img = document.createElement("img");
+                  img.src = att.fileData;
+                  img.alt = att.fileName;
+                  attachDiv.appendChild(img);
+                } else {
+                  const a = document.createElement("a");
+                  a.href = att.fileData;
+                  a.download = att.fileName;
+                  a.textContent = att.fileName;
+                  attachDiv.appendChild(a);
+                }
+              });
+              msgDiv.appendChild(attachDiv);
+            }
+            chatMessagesDiv.appendChild(msgDiv);
+          });
+          chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
         });
-        chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
-      });
     }
+
+    // --- قسم Code Snippets ---
+    function loadSnippets() {
+      db.collection("users").doc(currentUser.uid).collection("snippets").orderBy("timestamp", "asc")
+        .get().then(snapshot => {
+          const snippetsList = document.getElementById("snippetsList");
+          snippetsList.innerHTML = "";
+          snapshot.forEach(doc => {
+            const snippet = doc.data();
+            const snippetDiv = document.createElement("div");
+            snippetDiv.classList.add("snippet");
+            snippetDiv.innerHTML = `<h3>${snippet.title} (${snippet.language})</h3>
+                                    <pre><code class="${snippet.language}">${snippet.code}</code></pre>`;
+            snippetsList.appendChild(snippetDiv);
+          });
+          hljs.highlightAll();
+        }).catch(err => console.error("Error loading snippets:", err));
+    }
+    document.getElementById("snippetForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const title = document.getElementById("snippetTitle").value.trim();
+      const language = document.getElementById("snippetLanguage").value.trim();
+      const code = document.getElementById("snippetCode").value;
+      if(title === "" || language === "" || code === "") return;
+      const snippet = {
+        title: title,
+        language: language,
+        code: code,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      db.collection("users").doc(currentUser.uid).collection("snippets").add(snippet)
+        .then(() => {
+          document.getElementById("snippetForm").reset();
+          loadSnippets();
+        })
+        .catch(err => console.error("Error adding snippet:", err));
+    });
+
+    // --- قسم Docs ---
+    function loadDocs() {
+      db.collection("users").doc(currentUser.uid).collection("docs").orderBy("timestamp", "asc")
+        .get().then(snapshot => {
+          const docsList = document.getElementById("docsList");
+          docsList.innerHTML = "";
+          snapshot.forEach(doc => {
+            const d = doc.data();
+            const docDiv = document.createElement("div");
+            docDiv.classList.add("doc");
+            docDiv.innerHTML = `<h3>${d.title}</h3>
+                                <div>${marked.parse(d.content)}</div>`;
+            docsList.appendChild(docDiv);
+          });
+        }).catch(err => console.error("Error loading docs:", err));
+    }
+    document.getElementById("docForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const title = document.getElementById("docTitle").value.trim();
+      const content = document.getElementById("docContent").value;
+      if(title === "" || content === "") return;
+      const docData = {
+        title: title,
+        content: content,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      db.collection("users").doc(currentUser.uid).collection("docs").add(docData)
+        .then(() => {
+          document.getElementById("docForm").reset();
+          loadDocs();
+        })
+        .catch(err => console.error("Error adding doc:", err));
+    });
+
+    // --- قسم Editor ---
+    function loadEditorContent() {
+      db.collection("users").doc(currentUser.uid).get().then(doc => {
+        if (doc.exists && doc.data().editorContent) {
+          codeMirrorEditor.setValue(doc.data().editorContent);
+        } else {
+          codeMirrorEditor.setValue("");
+        }
+      }).catch(err => console.error("Error loading editor content:", err));
+    }
+    document.getElementById("saveEditorBtn").addEventListener("click", function() {
+      const content = codeMirrorEditor.getValue();
+      db.collection("users").doc(currentUser.uid).set({ editorContent: content }, { merge: true })
+        .then(() => alert("تم حفظ الشيفرة"))
+        .catch(err => console.error("Error saving editor content:", err));
+    });
+    // تهيئة محرر CodeMirror عند الدخول لقسم Editor
+    window.addEventListener("load", function() {
+      // إنشاء المحرر داخل العنصر #codeEditor
+      codeMirrorEditor = CodeMirror(document.getElementById("codeEditor"), {
+        mode: "javascript",
+        lineNumbers: true,
+        theme: "default"
+      });
+    });
   </script>
 </body>
 </html>
