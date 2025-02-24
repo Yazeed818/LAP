@@ -2,9 +2,9 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>موقع تقني - نظام الكود ولوحة Kanban مع مرفقات</title>
+  <title>مشاريعك التقنية - نظام الكود مع Kanban وشات</title>
   <style>
-    /* التنسيقات العامة */
+    /* --- التنسيقات العامة --- */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
@@ -25,15 +25,7 @@
     }
     input[type="number"],
     input[type="text"],
-    input[type="file"] {
-      width: 90%;
-      padding: 10px;
-      margin: 10px auto;
-      border: none;
-      border-radius: 4px;
-      font-size: 1rem;
-      display: block;
-    }
+    input[type="file"],
     textarea {
       width: 90%;
       padding: 10px;
@@ -42,8 +34,8 @@
       border-radius: 4px;
       font-size: 1rem;
       display: block;
-      resize: vertical;
     }
+    textarea { resize: vertical; }
     button {
       padding: 10px 15px;
       margin-top: 10px;
@@ -61,18 +53,18 @@
       margin-top: 10px;
       font-weight: bold;
     }
-    /* رأس الموقع بتأثير تقني */
+    /* --- رأس الموقع مع هيلوجرامات متعددة --- */
     header.header {
       position: relative;
       width: 100%;
-      height: 250px;
+      height: 300px;
       background: url('https://source.unsplash.com/1600x900/?technology') no-repeat center/cover;
       overflow: hidden;
     }
     header.header .overlay {
       position: absolute;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
+      background: rgba(0, 0, 0, 0.6);
       display: flex;
       flex-direction: column;
       align-items: center;
@@ -86,16 +78,30 @@
       color: #0ff;
       text-shadow: 0 0 10px rgba(0,255,255,0.7), 0 0 20px rgba(0,255,255,0.5);
       animation: flicker 1.5s infinite alternate;
+      margin-bottom: 10px;
+    }
+    header.header .hologram.secondary {
+      font-size: 2rem;
+      color: #ff0;
+      text-shadow: 0 0 8px rgba(255,255,0,0.7), 0 0 16px rgba(255,255,0,0.5);
+      animation: flicker 2s infinite alternate;
+      margin-bottom: 10px;
+    }
+    header.header .hologram.tertiary {
+      font-size: 1.8rem;
+      color: #f0f;
+      text-shadow: 0 0 8px rgba(240,0,240,0.7), 0 0 16px rgba(240,0,240,0.5);
+      animation: flicker 1.8s infinite alternate;
     }
     @keyframes flicker {
       0%   { opacity: 0.8; }
       50%  { opacity: 1; }
       100% { opacity: 0.7; }
     }
-    /* صفحة البداية */
+    /* --- صفحة البداية --- */
     #landingContainer p { margin: 10px 0; }
     #userCodeDisplay { font-size: 2rem; margin: 20px 0; }
-    /* لوحة التحكم */
+    /* --- لوحة التحكم --- */
     #dashboardContainer { max-width: 900px; }
     .nav {
       display: flex;
@@ -120,7 +126,7 @@
     }
     .section { display: none; }
     .section.active { display: block; }
-    /* لوحة Kanban */
+    /* --- لوحة Kanban --- */
     #kanbanBoard {
       display: flex;
       justify-content: space-between;
@@ -157,14 +163,59 @@
       border: 1px solid #444;
       border-radius: 4px;
     }
-    #newTaskForm { margin-top: 20px; text-align: left; }
+    /* --- قسم الشات --- */
+    #chatContainer {
+      text-align: left;
+      max-width: 800px;
+      margin: 20px auto;
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+    }
+    #chatMessages {
+      max-height: 300px;
+      overflow-y: auto;
+      border: 1px solid #444;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .chat-message {
+      margin-bottom: 10px;
+      padding-bottom: 5px;
+      border-bottom: 1px dashed #444;
+    }
+    .chat-message span.sender {
+      font-weight: bold;
+      color: #4285F4;
+    }
+    .chat-message p {
+      margin: 5px 0;
+    }
+    #chatForm input[type="text"] {
+      width: calc(100% - 120px);
+      display: inline-block;
+    }
+    #chatForm input[type="file"] {
+      display: inline-block;
+      width: calc(100% - 120px);
+    }
+    #chatForm button {
+      width: 100px;
+      display: inline-block;
+    }
   </style>
+  <!-- تضمين مكتبات Firebase وFirestore -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-firestore-compat.js"></script>
 </head>
 <body>
-  <!-- رأس الموقع -->
+  <!-- رأس الموقع مع عدة هيلوجرامات -->
   <header class="header">
     <div class="overlay">
       <h1 class="hologram">مشاريعك التقنية</h1>
+      <h2 class="hologram secondary">ابدأ رحلتك الإبداعية</h2>
+      <h3 class="hologram tertiary">حلول مستقبلية بلمسة فنية</h3>
       <p>ابتكر وطوّر مشاريعك باستخدام أحدث التقنيات</p>
     </div>
   </header>
@@ -183,12 +234,13 @@
   <!-- لوحة التحكم (Dashboard) -->
   <div class="container hidden" id="dashboardContainer">
     <div class="nav">
-      <button id="dashboardTab" class="active">لوحة Kanban</button>
+      <button id="kanbanTab" class="active">لوحة Kanban</button>
+      <button id="chatTab">الشات</button>
       <button id="logoutBtn">تسجيل الخروج</button>
     </div>
-    <div id="dashboardSection" class="section active">
+    <!-- قسم Kanban -->
+    <div id="kanbanSection" class="section active">
       <h2>لوحة Kanban</h2>
-      <!-- نموذج إضافة مهمة جديدة مع إمكانية إرفاق ملفات -->
       <form id="newTaskForm">
         <input type="text" id="taskTitle" placeholder="عنوان المهمة" required>
         <textarea id="taskDesc" placeholder="وصف المهمة" rows="2"></textarea>
@@ -210,60 +262,130 @@
         </div>
       </div>
     </div>
+    <!-- قسم الشات -->
+    <div id="chatSection" class="section hidden">
+      <h2>الشات</h2>
+      <div id="chatContainer">
+        <div id="chatMessages"></div>
+        <form id="chatForm">
+          <input type="text" id="chatMessageInput" placeholder="أدخل رسالتك" required>
+          <input type="file" id="chatFileInput">
+          <button type="submit">أرسل</button>
+        </form>
+      </div>
+    </div>
   </div>
 
   <script>
-    // عند تحميل الصفحة: تحقق من وجود كود محفوظ في localStorage، وإذا لم يوجد قم بتوليده
-    let userCode = localStorage.getItem("userCode");
+    // إعدادات Firebase – استبدل القيم الخاصة بمشروعك
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+
+    // --- المتغيرات العامة ---
+    let userCode = localStorage.getItem("userCode") || "";
+    let kanbanTasks = []; // سيتم تحميلها من Firestore
+
+    // دالة لإنشاء مستند مستخدم إذا لم يكن موجودًا
+    function createUserIfNotExists(code) {
+      return db.collection("users").doc(code).get().then(doc => {
+        if (!doc.exists) {
+          return db.collection("users").doc(code).set({ tasks: [] });
+        }
+      });
+    }
+
+    // التحقق من وجود كود في localStorage أو توليد واحد جديد
     if (!userCode) {
       userCode = Math.floor(100000 + Math.random() * 900000).toString();
       localStorage.setItem("userCode", userCode);
+      createUserIfNotExists(userCode);
+    } else {
+      createUserIfNotExists(userCode);
     }
     document.getElementById("userCodeDisplay").textContent = userCode;
 
-    // الدخول للوحة التحكم باستخدام الكود
+    // عند الضغط على زر "دخول المشاريع"
     document.getElementById("enterDashboardBtn").addEventListener("click", function() {
-      const inputCode = document.getElementById("codeInput").value;
+      const inputCode = document.getElementById("codeInput").value.trim();
       const errorDiv = document.getElementById("codeError");
       errorDiv.textContent = "";
       if (inputCode === userCode) {
-        document.getElementById("landingContainer").classList.add("hidden");
-        document.getElementById("dashboardContainer").classList.remove("hidden");
-        loadKanbanTasks();
+        enterDashboard(userCode);
       } else {
-        errorDiv.textContent = "الكود المدخل غير صحيح، حاول مرة أخرى.";
+        db.collection("users").doc(inputCode).get().then(doc => {
+          if (doc.exists) {
+            userCode = inputCode;
+            localStorage.setItem("userCode", userCode);
+            enterDashboard(userCode);
+          } else {
+            errorDiv.textContent = "الكود المدخل غير صحيح، حاول مرة أخرى.";
+          }
+        }).catch(err => {
+          errorDiv.textContent = "حدث خطأ أثناء التحقق من الكود.";
+          console.error(err);
+        });
       }
     });
 
-    // زر تسجيل الخروج: العودة لصفحة البداية
-    document.getElementById("logoutBtn").addEventListener("click", function() {
-      document.getElementById("dashboardContainer").classList.add("hidden");
-      document.getElementById("landingContainer").classList.remove("hidden");
-      document.getElementById("codeInput").value = "";
-    });
-
-    // --- قسم لوحة Kanban ---
-    let kanbanTasks = JSON.parse(localStorage.getItem("kanbanTasks")) || [];
-
-    function saveKanbanTasks() {
-      localStorage.setItem("kanbanTasks", JSON.stringify(kanbanTasks));
+    // دالة للدخول إلى لوحة التحكم
+    function enterDashboard(code) {
+      document.getElementById("landingContainer").classList.add("hidden");
+      document.getElementById("dashboardContainer").classList.remove("hidden");
+      loadKanbanTasks();
+      initChatListener();
     }
 
-    // إنشاء عنصر مهمة مع عرض المرفقات (إذا وُجدت)
+    // --- لوحة Kanban ---
+    function loadKanbanTasks() {
+      db.collection("users").doc(userCode).get().then(doc => {
+        if (doc.exists) {
+          const data = doc.data();
+          kanbanTasks = data.tasks || [];
+          renderKanbanTasks();
+        }
+      }).catch(err => {
+        console.error("Error loading tasks:", err);
+      });
+    }
+    function renderKanbanTasks() {
+      document.getElementById("todoTasks").innerHTML = "";
+      document.getElementById("inProgressTasks").innerHTML = "";
+      document.getElementById("doneTasks").innerHTML = "";
+      kanbanTasks.forEach(task => {
+        const taskEl = createTaskElement(task);
+        if(task.status === "todo") {
+          document.getElementById("todoTasks").appendChild(taskEl);
+        } else if(task.status === "inProgress") {
+          document.getElementById("inProgressTasks").appendChild(taskEl);
+        } else if(task.status === "done") {
+          document.getElementById("doneTasks").appendChild(taskEl);
+        }
+      });
+    }
+    function saveKanbanTasks() {
+      db.collection("users").doc(userCode).set({ tasks: kanbanTasks }, { merge: true })
+        .then(() => { renderKanbanTasks(); })
+        .catch(err => { console.error("Error saving tasks:", err); });
+    }
     function createTaskElement(task) {
       const div = document.createElement("div");
       div.classList.add("kanban-task");
       div.setAttribute("draggable", true);
       div.dataset.id = task.id;
       div.innerHTML = `<strong>${task.title}</strong><p>${task.desc}</p>`;
-      
-      // عرض المرفقات إن وجدت
       if(task.attachments && task.attachments.length > 0) {
         const attachmentsDiv = document.createElement("div");
         attachmentsDiv.classList.add("task-attachments");
         attachmentsDiv.innerHTML = "<strong>المرفقات:</strong><br>";
         task.attachments.forEach(attachment => {
-          // إذا كان الملف صورة، عرض معاينة
           if(attachment.fileData.startsWith("data:image/")) {
             const img = document.createElement("img");
             img.src = attachment.fileData;
@@ -279,8 +401,6 @@
         });
         div.appendChild(attachmentsDiv);
       }
-      
-      // أحداث السحب والإفلات
       div.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", task.id);
         div.classList.add("dragging");
@@ -290,33 +410,13 @@
       });
       return div;
     }
-
-    function loadKanbanTasks() {
-      document.getElementById("todoTasks").innerHTML = "";
-      document.getElementById("inProgressTasks").innerHTML = "";
-      document.getElementById("doneTasks").innerHTML = "";
-      kanbanTasks.forEach(task => {
-        const taskEl = createTaskElement(task);
-        if(task.status === "todo") {
-          document.getElementById("todoTasks").appendChild(taskEl);
-        } else if(task.status === "inProgress") {
-          document.getElementById("inProgressTasks").appendChild(taskEl);
-        } else if(task.status === "done") {
-          document.getElementById("doneTasks").appendChild(taskEl);
-        }
-      });
-    }
-
-    // --- إضافة مهمة جديدة مع إمكانية إرفاق ملفات ---
     document.getElementById("newTaskForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const title = document.getElementById("taskTitle").value.trim();
       const desc = document.getElementById("taskDesc").value.trim();
       const fileInput = document.getElementById("taskFiles");
       const files = fileInput.files;
-      
       if(title !== "") {
-        // إذا كان هناك ملفات مرفقة
         if(files.length > 0) {
           let readFilePromises = [];
           for(let i = 0; i < files.length; i++) {
@@ -343,12 +443,9 @@
               };
               kanbanTasks.push(newTask);
               saveKanbanTasks();
-              loadKanbanTasks();
               this.reset();
             })
-            .catch(error => {
-              alert("خطأ أثناء معالجة الملفات: " + error);
-            });
+            .catch(error => { alert("خطأ أثناء معالجة الملفات: " + error); });
         } else {
           const newTask = {
             id: Date.now().toString(),
@@ -359,13 +456,10 @@
           };
           kanbanTasks.push(newTask);
           saveKanbanTasks();
-          loadKanbanTasks();
           this.reset();
         }
       }
     });
-
-    // إعداد أحداث السحب والإفلات في أعمدة Kanban
     const kanbanColumns = document.querySelectorAll(".kanban-column");
     kanbanColumns.forEach(column => {
       column.addEventListener("dragover", (e) => { e.preventDefault(); });
@@ -378,9 +472,107 @@
           return task;
         });
         saveKanbanTasks();
-        loadKanbanTasks();
       });
     });
+
+    // --- قسم الشات ---
+    const chatTab = document.getElementById("chatTab");
+    const kanbanTab = document.getElementById("kanbanTab");
+    const kanbanSection = document.getElementById("kanbanSection");
+    const chatSection = document.getElementById("chatSection");
+
+    chatTab.addEventListener("click", () => {
+      chatTab.classList.add("active");
+      kanbanTab.classList.remove("active");
+      chatSection.classList.remove("hidden");
+      chatSection.classList.add("active");
+      kanbanSection.classList.remove("active");
+    });
+    kanbanTab.addEventListener("click", () => {
+      kanbanTab.classList.add("active");
+      chatTab.classList.remove("active");
+      kanbanSection.classList.add("active");
+      chatSection.classList.remove("active");
+      chatSection.classList.add("hidden");
+    });
+
+    // إرسال رسالة في الشات مع إمكانية إرفاق ملف
+    document.getElementById("chatForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const messageText = document.getElementById("chatMessageInput").value.trim();
+      const fileInput = document.getElementById("chatFileInput");
+      const files = fileInput.files;
+      if(messageText === "" && files.length === 0) return;
+      if(files.length > 0) {
+        let readFilePromises = [];
+        for(let i = 0; i < files.length; i++) {
+          readFilePromises.push(new Promise((resolve, reject) => {
+            const file = files[i];
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              resolve({ fileName: file.name, fileData: event.target.result });
+            };
+            reader.onerror = function() {
+              reject("خطأ أثناء قراءة الملف: " + file.name);
+            };
+            reader.readAsDataURL(file);
+          }));
+        }
+        Promise.all(readFilePromises)
+          .then(results => {
+            sendChatMessage(messageText, results);
+            document.getElementById("chatForm").reset();
+          })
+          .catch(error => { alert("خطأ أثناء معالجة الملفات: " + error); });
+      } else {
+        sendChatMessage(messageText, []);
+        document.getElementById("chatForm").reset();
+      }
+    });
+    function sendChatMessage(text, attachments) {
+      const message = {
+        sender: userCode,
+        text: text,
+        attachments: attachments,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      db.collection("chat").add(message).catch(err => { console.error("Error sending message:", err); });
+    }
+    // تحديث الشات في الوقت الحقيقي
+    function initChatListener() {
+      db.collection("chat").orderBy("timestamp", "asc").onSnapshot(snapshot => {
+        const chatMessagesDiv = document.getElementById("chatMessages");
+        chatMessagesDiv.innerHTML = "";
+        snapshot.forEach(doc => {
+          const msg = doc.data();
+          const msgDiv = document.createElement("div");
+          msgDiv.classList.add("chat-message");
+          msgDiv.innerHTML = `<span class="sender">${msg.sender}:</span> <p>${msg.text || ""}</p>`;
+          if(msg.attachments && msg.attachments.length > 0) {
+            const attachDiv = document.createElement("div");
+            attachDiv.classList.add("task-attachments");
+            msg.attachments.forEach(att => {
+              if(att.fileData.startsWith("data:image/")) {
+                const img = document.createElement("img");
+                img.src = att.fileData;
+                img.alt = att.fileName;
+                attachDiv.appendChild(img);
+              } else {
+                const a = document.createElement("a");
+                a.href = att.fileData;
+                a.download = att.fileName;
+                a.textContent = att.fileName;
+                attachDiv.appendChild(a);
+              }
+            });
+            msgDiv.appendChild(attachDiv);
+          }
+          chatMessagesDiv.appendChild(msgDiv);
+        });
+        // تمرير الشات لأسفل عند إضافة رسالة جديدة
+        chatMessagesDiv.scrollTop = chatMessagesDiv.scrollHeight;
+      });
+    }
   </script>
 </body>
 </html>
