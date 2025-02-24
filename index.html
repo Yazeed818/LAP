@@ -2,7 +2,7 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>موقع تقني - نظام الكود</title>
+  <title>موقع تقني - نظام الكود ولوحة Kanban مع مرفقات</title>
   <style>
     /* التنسيقات العامة */
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -24,7 +24,8 @@
       text-align: center;
     }
     input[type="number"],
-    input[type="text"] {
+    input[type="text"],
+    input[type="file"] {
       width: 90%;
       padding: 10px;
       margin: 10px auto;
@@ -32,6 +33,16 @@
       border-radius: 4px;
       font-size: 1rem;
       display: block;
+    }
+    textarea {
+      width: 90%;
+      padding: 10px;
+      margin: 10px auto;
+      border: none;
+      border-radius: 4px;
+      font-size: 1rem;
+      display: block;
+      resize: vertical;
     }
     button {
       padding: 10px 15px;
@@ -81,6 +92,9 @@
       50%  { opacity: 1; }
       100% { opacity: 0.7; }
     }
+    /* صفحة البداية */
+    #landingContainer p { margin: 10px 0; }
+    #userCodeDisplay { font-size: 2rem; margin: 20px 0; }
     /* لوحة التحكم */
     #dashboardContainer { max-width: 900px; }
     .nav {
@@ -106,7 +120,7 @@
     }
     .section { display: none; }
     .section.active { display: block; }
-    /* تنسيق لوحة Kanban */
+    /* لوحة Kanban */
     #kanbanBoard {
       display: flex;
       justify-content: space-between;
@@ -128,17 +142,22 @@
       border-radius: 4px;
       cursor: grab;
       box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      text-align: left;
     }
     .kanban-task.dragging { opacity: 0.5; }
-    #newTaskForm { margin-top: 20px; text-align: left; }
-    #newTaskForm input, #newTaskForm textarea {
-      width: 100%;
-      padding: 8px;
-      margin-bottom: 10px;
-      border: none;
-      border-radius: 4px;
-      font-size: 0.9rem;
+    .task-attachments { margin-top: 10px; }
+    .task-attachments a, .task-attachments img {
+      margin-right: 5px;
+      margin-bottom: 5px;
+      display: inline-block;
     }
+    .task-attachments img {
+      width: 80px;
+      height: auto;
+      border: 1px solid #444;
+      border-radius: 4px;
+    }
+    #newTaskForm { margin-top: 20px; text-align: left; }
   </style>
 </head>
 <body>
@@ -154,7 +173,7 @@
   <div class="container" id="landingContainer">
     <h2>مرحباً بك</h2>
     <p>الكود الخاص بك:</p>
-    <div id="userCodeDisplay" style="font-size: 2rem; margin: 20px 0;"></div>
+    <div id="userCodeDisplay"></div>
     <p>احفظ الكود عشان ترجع لمشاريعك</p>
     <input type="number" id="codeInput" placeholder="أدخل الكود هنا">
     <button id="enterDashboardBtn">دخول المشاريع</button>
@@ -169,9 +188,11 @@
     </div>
     <div id="dashboardSection" class="section active">
       <h2>لوحة Kanban</h2>
+      <!-- نموذج إضافة مهمة جديدة مع إمكانية إرفاق ملفات -->
       <form id="newTaskForm">
         <input type="text" id="taskTitle" placeholder="عنوان المهمة" required>
         <textarea id="taskDesc" placeholder="وصف المهمة" rows="2"></textarea>
+        <input type="file" id="taskFiles" multiple>
         <button type="submit">إضافة المهمة</button>
       </form>
       <div id="kanbanBoard">
@@ -192,16 +213,15 @@
   </div>
 
   <script>
-    // عند تحميل الصفحة: تحقق إذا كان الكود موجوداً في localStorage، وإن لم يكن فقم بتوليد كود جديد
+    // عند تحميل الصفحة: تحقق من وجود كود محفوظ في localStorage، وإذا لم يوجد قم بتوليده
     let userCode = localStorage.getItem("userCode");
     if (!userCode) {
       userCode = Math.floor(100000 + Math.random() * 900000).toString();
       localStorage.setItem("userCode", userCode);
     }
-    // عرض الكود في صفحة البداية
     document.getElementById("userCodeDisplay").textContent = userCode;
 
-    // عند الضغط على زر "دخول المشاريع"
+    // الدخول للوحة التحكم باستخدام الكود
     document.getElementById("enterDashboardBtn").addEventListener("click", function() {
       const inputCode = document.getElementById("codeInput").value;
       const errorDiv = document.getElementById("codeError");
@@ -209,6 +229,7 @@
       if (inputCode === userCode) {
         document.getElementById("landingContainer").classList.add("hidden");
         document.getElementById("dashboardContainer").classList.remove("hidden");
+        loadKanbanTasks();
       } else {
         errorDiv.textContent = "الكود المدخل غير صحيح، حاول مرة أخرى.";
       }
@@ -221,17 +242,45 @@
       document.getElementById("codeInput").value = "";
     });
 
-    // --- لوحة Kanban ---
+    // --- قسم لوحة Kanban ---
     let kanbanTasks = JSON.parse(localStorage.getItem("kanbanTasks")) || [];
+
     function saveKanbanTasks() {
       localStorage.setItem("kanbanTasks", JSON.stringify(kanbanTasks));
     }
+
+    // إنشاء عنصر مهمة مع عرض المرفقات (إذا وُجدت)
     function createTaskElement(task) {
       const div = document.createElement("div");
       div.classList.add("kanban-task");
       div.setAttribute("draggable", true);
       div.dataset.id = task.id;
       div.innerHTML = `<strong>${task.title}</strong><p>${task.desc}</p>`;
+      
+      // عرض المرفقات إن وجدت
+      if(task.attachments && task.attachments.length > 0) {
+        const attachmentsDiv = document.createElement("div");
+        attachmentsDiv.classList.add("task-attachments");
+        attachmentsDiv.innerHTML = "<strong>المرفقات:</strong><br>";
+        task.attachments.forEach(attachment => {
+          // إذا كان الملف صورة، عرض معاينة
+          if(attachment.fileData.startsWith("data:image/")) {
+            const img = document.createElement("img");
+            img.src = attachment.fileData;
+            img.alt = attachment.fileName;
+            attachmentsDiv.appendChild(img);
+          } else {
+            const a = document.createElement("a");
+            a.href = attachment.fileData;
+            a.download = attachment.fileName;
+            a.textContent = attachment.fileName;
+            attachmentsDiv.appendChild(a);
+          }
+        });
+        div.appendChild(attachmentsDiv);
+      }
+      
+      // أحداث السحب والإفلات
       div.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", task.id);
         div.classList.add("dragging");
@@ -241,38 +290,82 @@
       });
       return div;
     }
+
     function loadKanbanTasks() {
       document.getElementById("todoTasks").innerHTML = "";
       document.getElementById("inProgressTasks").innerHTML = "";
       document.getElementById("doneTasks").innerHTML = "";
       kanbanTasks.forEach(task => {
         const taskEl = createTaskElement(task);
-        if (task.status === "todo") {
+        if(task.status === "todo") {
           document.getElementById("todoTasks").appendChild(taskEl);
-        } else if (task.status === "inProgress") {
+        } else if(task.status === "inProgress") {
           document.getElementById("inProgressTasks").appendChild(taskEl);
-        } else if (task.status === "done") {
+        } else if(task.status === "done") {
           document.getElementById("doneTasks").appendChild(taskEl);
         }
       });
     }
+
+    // --- إضافة مهمة جديدة مع إمكانية إرفاق ملفات ---
     document.getElementById("newTaskForm").addEventListener("submit", function(e) {
       e.preventDefault();
       const title = document.getElementById("taskTitle").value.trim();
       const desc = document.getElementById("taskDesc").value.trim();
-      if (title !== "") {
-        const newTask = {
-          id: Date.now().toString(),
-          title: title,
-          desc: desc,
-          status: "todo"
-        };
-        kanbanTasks.push(newTask);
-        saveKanbanTasks();
-        loadKanbanTasks();
-        this.reset();
+      const fileInput = document.getElementById("taskFiles");
+      const files = fileInput.files;
+      
+      if(title !== "") {
+        // إذا كان هناك ملفات مرفقة
+        if(files.length > 0) {
+          let readFilePromises = [];
+          for(let i = 0; i < files.length; i++) {
+            readFilePromises.push(new Promise((resolve, reject) => {
+              const file = files[i];
+              const reader = new FileReader();
+              reader.onload = function(event) {
+                resolve({ fileName: file.name, fileData: event.target.result });
+              };
+              reader.onerror = function() {
+                reject("خطأ أثناء قراءة الملف: " + file.name);
+              };
+              reader.readAsDataURL(file);
+            }));
+          }
+          Promise.all(readFilePromises)
+            .then(results => {
+              const newTask = {
+                id: Date.now().toString(),
+                title: title,
+                desc: desc,
+                status: "todo",
+                attachments: results
+              };
+              kanbanTasks.push(newTask);
+              saveKanbanTasks();
+              loadKanbanTasks();
+              this.reset();
+            })
+            .catch(error => {
+              alert("خطأ أثناء معالجة الملفات: " + error);
+            });
+        } else {
+          const newTask = {
+            id: Date.now().toString(),
+            title: title,
+            desc: desc,
+            status: "todo",
+            attachments: []
+          };
+          kanbanTasks.push(newTask);
+          saveKanbanTasks();
+          loadKanbanTasks();
+          this.reset();
+        }
       }
     });
+
+    // إعداد أحداث السحب والإفلات في أعمدة Kanban
     const kanbanColumns = document.querySelectorAll(".kanban-column");
     kanbanColumns.forEach(column => {
       column.addEventListener("dragover", (e) => { e.preventDefault(); });
@@ -281,7 +374,7 @@
         const taskId = e.dataTransfer.getData("text/plain");
         const newStatus = column.getAttribute("data-status");
         kanbanTasks = kanbanTasks.map(task => {
-          if (task.id === taskId) { task.status = newStatus; }
+          if(task.id === taskId) { task.status = newStatus; }
           return task;
         });
         saveKanbanTasks();
