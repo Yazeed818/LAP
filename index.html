@@ -2,158 +2,297 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>نظام تسجيل الدخول باستخدام الكود</title>
+  <title>لوحة التحكم المتطورة</title>
   <style>
+    /* تنسيق عام */
     body {
       font-family: Arial, sans-serif;
       direction: rtl;
-      background-color: #f5f5f5;
       margin: 0;
       padding: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
+      background-color: #f0f0f0;
     }
     .container {
-      width: 300px;
+      max-width: 500px;
+      margin: 20px auto;
       background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
       padding: 20px;
-      border-radius: 5px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.1);
-      margin: 10px;
-    }
-    h2 {
       text-align: center;
-      color: #333;
-    }
-    input[type="text"],
-    input[type="password"],
-    input[type="number"] {
-      width: 100%;
-      padding: 10px;
-      margin: 10px 0;
-      border: 1px solid #ccc;
-      border-radius: 3px;
-    }
-    button {
-      width: 100%;
-      padding: 10px;
-      background-color: #28a745;
-      border: none;
-      border-radius: 3px;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #218838;
-    }
-    .message {
-      text-align: center;
-      margin-top: 20px;
-      color: #333;
     }
     .hidden {
       display: none;
     }
+    button {
+      display: inline-block;
+      padding: 10px 15px;
+      margin-top: 10px;
+      border: none;
+      border-radius: 4px;
+      background-color: #4285F4;
+      color: #fff;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #357ae8;
+    }
+    input[type="number"],
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
     .link {
       color: #007bff;
-      cursor: pointer;
       text-decoration: underline;
-      text-align: center;
-      display: block;
+      cursor: pointer;
       margin-top: 10px;
+      display: block;
+    }
+    /* تنسيق لوحة التحكم */
+    #dashboardContainer {
+      padding: 10px;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-around;
+      background: #f5f5f5;
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 20px;
+    }
+    .nav button {
+      background: none;
+      border: none;
+      font-size: 16px;
+      color: #333;
+      cursor: pointer;
+    }
+    .nav button.active {
+      font-weight: bold;
+      color: #4285F4;
+    }
+    .section {
+      display: none;
+    }
+    .section.active {
+      display: block;
     }
   </style>
+  <!-- تضمين مكتبات Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <!-- نموذج تسجيل الدخول -->
-  <div class="container" id="loginContainer">
-    <h2>تسجيل الدخول</h2>
-    <form id="loginForm">
-      <input type="text" id="username" placeholder="اسم المستخدم" required>
-      <input type="password" id="password" placeholder="كلمة المرور" required>
-      <button type="submit">تسجيل الدخول</button>
-    </form>
+  <!-- شاشة تسجيل الدخول بحساب جوجل -->
+  <div class="container" id="googleSignInContainer">
+    <h2>تسجيل الدخول بحساب جوجل</h2>
+    <button id="googleSignInBtn">سجل الدخول باستخدام جوجل</button>
     <span class="link" id="switchToCodeLogin">أدخل باستخدام الكود</span>
   </div>
 
-  <!-- نموذج الدخول باستخدام الكود -->
+  <!-- شاشة تسجيل الدخول بواسطة الكود -->
   <div class="container hidden" id="codeContainer">
     <h2>دخول بواسطة الكود</h2>
     <form id="codeForm">
       <input type="number" id="accessCode" placeholder="أدخل الكود" required>
       <button type="submit">دخول</button>
     </form>
-    <span class="link" id="switchToLogin">العودة لتسجيل الدخول</span>
+    <span class="link" id="switchToGoogleSignIn">العودة لتسجيل الدخول بحساب جوجل</span>
   </div>
 
-  <!-- صفحة الترحيب -->
-  <div class="container hidden" id="welcomeContainer">
-    <h2>مرحباً!</h2>
-    <p class="message" id="welcomeMessage"></p>
-    <button id="logoutBtn">تسجيل الخروج</button>
+  <!-- لوحة التحكم المتطورة بعد تسجيل الدخول -->
+  <div class="container hidden" id="dashboardContainer">
+    <div class="nav">
+      <button id="profileTab" class="active">الملف الشخصي</button>
+      <button id="codesTab">إدارة الأكواد</button>
+      <button id="logoutBtn">تسجيل الخروج</button>
+    </div>
+    <!-- قسم الملف الشخصي -->
+    <div id="profileSection" class="section active">
+      <h2>الملف الشخصي</h2>
+      <div id="profileContent">
+        <!-- ستظهر معلومات المستخدم هنا -->
+      </div>
+    </div>
+    <!-- قسم إدارة الأكواد -->
+    <div id="codesSection" class="section">
+      <h2>إدارة الأكواد</h2>
+      <button id="generateCodeBtn">توليد كود جديد</button>
+      <ul id="codesList">
+        <!-- قائمة الأكواد -->
+      </ul>
+    </div>
   </div>
 
   <script>
-    // مصفوفة لتخزين الأكواد الصالحة (ملاحظة: في تطبيق حقيقي يجب استخدام قاعدة بيانات أو خادم)
+    // إعدادات Firebase – استبدل القيم بالقيم الخاصة بمشروعك
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_AUTH_DOMAIN",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_STORAGE_BUCKET",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // المتغيرات لإدارة حالة تسجيل الدخول
     let validCodes = [];
+    let currentUserMethod = ""; // "google" أو "code"
+    let currentUserData = null; // بيانات المستخدم في حال تسجيل الدخول بجوجل
 
     // دالة لتوليد كود عشوائي من 6 أرقام
     function generateCode() {
       return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
-    // التبديل بين نموذج تسجيل الدخول والنموذج الخاص بالدخول عبر الكود
+    // عناصر الواجهة
+    const googleSignInContainer = document.getElementById('googleSignInContainer');
+    const codeContainer = document.getElementById('codeContainer');
+    const dashboardContainer = document.getElementById('dashboardContainer');
+    const profileContent = document.getElementById('profileContent');
+    const codesList = document.getElementById('codesList');
+
+    // التنقل بين شاشات تسجيل الدخول
     document.getElementById('switchToCodeLogin').addEventListener('click', function() {
-      document.getElementById('loginContainer').classList.add('hidden');
-      document.getElementById('codeContainer').classList.remove('hidden');
+      googleSignInContainer.classList.add('hidden');
+      codeContainer.classList.remove('hidden');
     });
-    document.getElementById('switchToLogin').addEventListener('click', function() {
-      document.getElementById('codeContainer').classList.add('hidden');
-      document.getElementById('loginContainer').classList.remove('hidden');
-    });
-
-    // معالجة نموذج تسجيل الدخول
-    document.getElementById('loginForm').addEventListener('submit', function(e) {
-      e.preventDefault();
-      // في تطبيق حقيقي يتم التحقق من صحة بيانات الاعتماد
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      if(username && password) {
-        const code = generateCode();
-        // حفظ الكود في المصفوفة ليكون صالحاً للدخول
-        validCodes.push(code);
-        // عرض رسالة ترحيب مع الكود للمستخدم
-        document.getElementById('welcomeMessage').innerHTML = "مرحباً " + username + "!<br>كود الدخول الخاص بك هو: <strong>" + code + "</strong>";
-        document.getElementById('loginContainer').classList.add('hidden');
-        document.getElementById('welcomeContainer').classList.remove('hidden');
-      }
+    document.getElementById('switchToGoogleSignIn').addEventListener('click', function() {
+      codeContainer.classList.add('hidden');
+      googleSignInContainer.classList.remove('hidden');
     });
 
-    // معالجة نموذج الدخول بواسطة الكود (للزملاء)
+    // تسجيل الدخول باستخدام جوجل
+    document.getElementById('googleSignInBtn').addEventListener('click', function() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then((result) => {
+          currentUserMethod = "google";
+          currentUserData = result.user;
+          // توليد كود وحفظه
+          const code = generateCode();
+          validCodes.push(code);
+          // الانتقال إلى لوحة التحكم
+          showDashboard();
+        })
+        .catch((error) => {
+          console.error("حدث خطأ أثناء تسجيل الدخول بجوجل:", error);
+          alert("فشل تسجيل الدخول. الرجاء المحاولة مرة أخرى.");
+        });
+    });
+
+    // تسجيل الدخول بواسطة الكود
     document.getElementById('codeForm').addEventListener('submit', function(e) {
       e.preventDefault();
       const inputCode = document.getElementById('accessCode').value;
       if(validCodes.includes(inputCode)) {
-        // دخول ناجح عبر الكود
-        document.getElementById('welcomeMessage').innerHTML = "مرحباً! لقد تم الدخول باستخدام الكود: <strong>" + inputCode + "</strong>";
-        document.getElementById('codeContainer').classList.add('hidden');
-        document.getElementById('welcomeContainer').classList.remove('hidden');
+        currentUserMethod = "code";
+        currentUserData = null; // لا توجد بيانات مستخدم فعلية عند الدخول بواسطة الكود
+        showDashboard(inputCode);
       } else {
         alert("الكود غير صحيح. الرجاء المحاولة مرة أخرى.");
       }
     });
 
-    // معالجة تسجيل الخروج
-    document.getElementById('logoutBtn').addEventListener('click', function() {
-      // إعادة تعيين النماذج وإظهار نموذج تسجيل الدخول
-      document.getElementById('loginForm').reset();
-      document.getElementById('codeForm').reset();
-      document.getElementById('welcomeContainer').classList.add('hidden');
-      document.getElementById('loginContainer').classList.remove('hidden');
+    // دالة عرض لوحة التحكم
+    function showDashboard(codeUsed) {
+      googleSignInContainer.classList.add('hidden');
+      codeContainer.classList.add('hidden');
+      dashboardContainer.classList.remove('hidden');
+
+      // تحديث قسم الملف الشخصي
+      if(currentUserMethod === "google" && currentUserData) {
+        profileContent.innerHTML = `
+          <p><strong>الاسم:</strong> ${currentUserData.displayName}</p>
+          <p><strong>البريد الإلكتروني:</strong> ${currentUserData.email}</p>
+          <img src="${currentUserData.photoURL}" alt="صورة المستخدم" style="width:100px; border-radius:50%;">
+          <p><strong>الكود المولد:</strong> ${validCodes[validCodes.length - 1]}</p>
+        `;
+      } else {
+        profileContent.innerHTML = `
+          <p>مرحباً زميل! لقد تم الدخول باستخدام الكود: <strong>${codeUsed}</strong></p>
+        `;
+      }
+      updateCodesList();
+    }
+
+    // تحديث قائمة الأكواد في قسم إدارة الأكواد
+    function updateCodesList() {
+      codesList.innerHTML = "";
+      validCodes.forEach(function(code, index) {
+        const li = document.createElement('li');
+        li.textContent = `الكود ${index + 1}: ${code}`;
+        codesList.appendChild(li);
+      });
+    }
+
+    // التنقل بين أقسام لوحة التحكم
+    const profileTab = document.getElementById('profileTab');
+    const codesTab = document.getElementById('codesTab');
+    const profileSection = document.getElementById('profileSection');
+    const codesSection = document.getElementById('codesSection');
+
+    profileTab.addEventListener('click', function() {
+      profileTab.classList.add('active');
+      codesTab.classList.remove('active');
+      profileSection.classList.add('active');
+      codesSection.classList.remove('active');
     });
+
+    codesTab.addEventListener('click', function() {
+      codesTab.classList.add('active');
+      profileTab.classList.remove('active');
+      codesSection.classList.add('active');
+      profileSection.classList.remove('active');
+    });
+
+    // توليد كود جديد من قسم إدارة الأكواد
+    document.getElementById('generateCodeBtn').addEventListener('click', function() {
+      const newCode = generateCode();
+      validCodes.push(newCode);
+      updateCodesList();
+      // تحديث عرض الكود في الملف الشخصي إذا كان المستخدم جوجل
+      if(currentUserMethod === "google" && currentUserData) {
+        profileContent.innerHTML = `
+          <p><strong>الاسم:</strong> ${currentUserData.displayName}</p>
+          <p><strong>البريد الإلكتروني:</strong> ${currentUserData.email}</p>
+          <img src="${currentUserData.photoURL}" alt="صورة المستخدم" style="width:100px; border-radius:50%;">
+          <p><strong>آخر كود مولد:</strong> ${newCode}</p>
+        `;
+      }
+    });
+
+    // تسجيل الخروج وإعادة تعيين التطبيق
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      if(currentUserMethod === "google") {
+        auth.signOut().then(() => {
+          resetApp();
+        }).catch((error) => {
+          console.error("حدث خطأ أثناء تسجيل الخروج:", error);
+        });
+      } else {
+        resetApp();
+      }
+    });
+
+    // إعادة تعيين حالة التطبيق للعودة لشاشة تسجيل الدخول
+    function resetApp() {
+      dashboardContainer.classList.add('hidden');
+      googleSignInContainer.classList.remove('hidden');
+      document.getElementById('accessCode').value = "";
+      validCodes = [];
+      currentUserMethod = "";
+      currentUserData = null;
+    }
   </script>
 </body>
 </html>
+
