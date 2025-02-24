@@ -2,9 +2,9 @@
 <html lang="ar">
 <head>
   <meta charset="UTF-8">
-  <title>موقع تقني متطور مع تأثيرات هيلوجرام ولوحات Kanban</title>
+  <title>موقع تقني متطور بدون تسجيل جوجل</title>
   <style>
-    /* --- تنسيقات عامة --- */
+    /* --- التنسيقات العامة --- */
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
       font-family: Arial, sans-serif;
@@ -13,47 +13,7 @@
       color: #f0f0f0;
       line-height: 1.6;
     }
-    a { color: #4285F4; text-decoration: none; }
     .hidden { display: none; }
-
-    /* --- رأس الموقع مع خلفية تقنية وتأثير هيلوجرام --- */
-    header.header {
-      position: relative;
-      width: 100%;
-      height: 250px;
-      background: url('https://source.unsplash.com/1600x900/?technology') no-repeat center/cover;
-      overflow: hidden;
-    }
-    header.header .overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 20px;
-    }
-    header.header .hologram {
-      font-size: 2.5rem;
-      font-weight: bold;
-      color: #0ff;
-      text-shadow: 0 0 10px rgba(0,255,255,0.7), 0 0 20px rgba(0,255,255,0.5);
-      animation: flicker 1.5s infinite alternate;
-    }
-    @keyframes flicker {
-      0%   { opacity: 0.8; }
-      50%  { opacity: 1; }
-      100% { opacity: 0.7; }
-    }
-    header.header p {
-      font-size: 1.2rem;
-      margin-top: 10px;
-      color: #ddd;
-    }
-
-    /* --- الحاويات الأساسية --- */
     .container {
       max-width: 800px;
       background: #1e1e1e;
@@ -63,17 +23,17 @@
       box-shadow: 0 2px 10px rgba(0,0,0,0.5);
       text-align: center;
     }
-    input[type="text"],
+    input[type="email"],
     input[type="password"],
-    input[type="number"],
-    input[type="email"] {
+    input[type="text"],
+    input[type="number"] {
       width: 90%;
       padding: 10px;
       margin: 10px auto;
       border: none;
       border-radius: 4px;
-      display: block;
       font-size: 1rem;
+      display: block;
     }
     button {
       padding: 10px 15px;
@@ -93,7 +53,11 @@
       cursor: pointer;
       color: #4285F4;
     }
-    .auth-tabs { display: flex; justify-content: center; margin-bottom: 10px; }
+    .auth-tabs {
+      display: flex;
+      justify-content: center;
+      margin-bottom: 10px;
+    }
     .auth-tabs button {
       background: none;
       border: none;
@@ -103,8 +67,10 @@
       border-bottom: 2px solid transparent;
       cursor: pointer;
     }
-    .auth-tabs button.active { border-color: #4285F4; color: #4285F4; }
-
+    .auth-tabs button.active {
+      border-color: #4285F4;
+      color: #4285F4;
+    }
     /* --- لوحة التحكم --- */
     #dashboardContainer { max-width: 900px; }
     .nav {
@@ -130,7 +96,12 @@
     }
     .section { display: none; }
     .section.active { display: block; }
-
+    /* --- تنسيق رسائل الخطأ --- */
+    .error-message {
+      color: #ff6b6b;
+      margin-top: 10px;
+      font-weight: bold;
+    }
     /* --- تنسيق لوحة Kanban --- */
     #kanbanBoard {
       display: flex;
@@ -170,22 +141,13 @@
   <script src="https://www.gstatic.com/firebasejs/9.17.2/firebase-auth-compat.js"></script>
 </head>
 <body>
-  <!-- رأس الموقع مع صورة تقنية وتأثير هيلوجرام -->
-  <header class="header">
-    <div class="overlay">
-      <h1 class="hologram">موقع تقني متطور</h1>
-      <p>ابتكر وطور مشاريعك باستخدام أحدث التقنيات</p>
-    </div>
-  </header>
-
-  <!-- صفحة المصادقة -->
-  <!-- 1. مصادقة البريد الإلكتروني (تسجيل الدخول وإنشاء حساب) -->
+  <!-- صفحة المصادقة بالبريد الإلكتروني -->
   <div class="container" id="emailAuthContainer">
     <div class="auth-tabs">
       <button id="loginTab" class="active">تسجيل الدخول</button>
       <button id="registerTab">إنشاء حساب</button>
     </div>
-    <!-- نموذج تسجيل الدخول بالبريد الإلكتروني -->
+    <!-- نموذج تسجيل الدخول -->
     <div id="loginFormContainer" class="auth-section active">
       <h2>تسجيل الدخول</h2>
       <form id="emailLoginForm">
@@ -193,8 +155,9 @@
         <input type="password" id="loginPassword" placeholder="كلمة المرور" required>
         <button type="submit">تسجيل الدخول</button>
       </form>
+      <div id="loginError" class="error-message"></div>
     </div>
-    <!-- نموذج إنشاء حساب بالبريد الإلكتروني -->
+    <!-- نموذج إنشاء الحساب -->
     <div id="registerFormContainer" class="auth-section">
       <h2>إنشاء حساب</h2>
       <form id="emailRegisterForm">
@@ -202,28 +165,20 @@
         <input type="password" id="registerPassword" placeholder="كلمة المرور" required>
         <button type="submit">إنشاء الحساب</button>
       </form>
+      <div id="registerError" class="error-message"></div>
     </div>
-    <span class="link" id="switchToGoogle">استخدام تسجيل جوجل</span>
     <span class="link" id="switchToCode">استخدام الكود</span>
   </div>
 
-  <!-- 2. تسجيل الدخول باستخدام جوجل -->
-  <div class="container hidden" id="googleSignInContainer">
-    <h2>تسجيل الدخول بحساب جوجل</h2>
-    <button id="googleSignInBtn">سجل الدخول باستخدام جوجل</button>
-    <span class="link" id="switchToEmailFromGoogle">استخدام البريد الإلكتروني</span>
-    <span class="link" id="switchToCodeFromGoogle">استخدام الكود</span>
-  </div>
-
-  <!-- 3. تسجيل الدخول باستخدام الكود -->
+  <!-- صفحة تسجيل الدخول باستخدام الكود -->
   <div class="container hidden" id="codeContainer">
     <h2>دخول بواسطة الكود</h2>
     <form id="codeForm">
       <input type="number" id="accessCode" placeholder="أدخل الكود" required>
       <button type="submit">دخول</button>
     </form>
+    <div id="codeError" class="error-message"></div>
     <span class="link" id="switchToEmailFromCode">استخدام البريد الإلكتروني</span>
-    <span class="link" id="switchToGoogleFromCode">استخدام تسجيل جوجل</span>
   </div>
 
   <!-- لوحة التحكم بعد المصادقة -->
@@ -272,7 +227,7 @@
   </div>
 
   <script>
-    // إعدادات Firebase – استبدل القيم بالقيم الخاصة بمشروعك
+    // إعدادات Firebase – استبدل القيم الخاصة بمشروعك
     const firebaseConfig = {
       apiKey: "YOUR_API_KEY",
       authDomain: "YOUR_AUTH_DOMAIN",
@@ -284,13 +239,12 @@
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
 
-    // --- متغيرات الحالة العامة ---
+    // --- متغيرات الحالة ---
     let validCodes = [];
-    let currentUserMethod = ""; // "email" أو "google" أو "code"
-    let currentUserData = null; // بيانات المستخدم في حال تسجيل الدخول عبر جوجل أو البريد
+    let currentUserMethod = ""; // "email" أو "code"
+    let currentUserData = null;
 
     // --- عناصر الواجهة ---
-    // مصادقة البريد الإلكتروني
     const emailAuthContainer = document.getElementById('emailAuthContainer');
     const loginTab = document.getElementById('loginTab');
     const registerTab = document.getElementById('registerTab');
@@ -298,161 +252,132 @@
     const registerFormContainer = document.getElementById('registerFormContainer');
     const emailLoginForm = document.getElementById('emailLoginForm');
     const emailRegisterForm = document.getElementById('emailRegisterForm');
+    const loginError = document.getElementById('loginError');
+    const registerError = document.getElementById('registerError');
 
-    // مصادقة جوجل
-    const googleSignInContainer = document.getElementById('googleSignInContainer');
-    const googleSignInBtn = document.getElementById('googleSignInBtn');
-
-    // مصادقة الكود
     const codeContainer = document.getElementById('codeContainer');
     const codeForm = document.getElementById('codeForm');
+    const codeError = document.getElementById('codeError');
 
-    // روابط التبديل بين طرق المصادقة
-    const switchToGoogle = document.getElementById('switchToGoogle');
     const switchToCode = document.getElementById('switchToCode');
-    const switchToEmailFromGoogle = document.getElementById('switchToEmailFromGoogle');
-    const switchToCodeFromGoogle = document.getElementById('switchToCodeFromGoogle');
     const switchToEmailFromCode = document.getElementById('switchToEmailFromCode');
-    const switchToGoogleFromCode = document.getElementById('switchToGoogleFromCode');
 
-    // لوحة التحكم
     const dashboardContainer = document.getElementById('dashboardContainer');
     const profileContent = document.getElementById('profileContent');
     const codesList = document.getElementById('codesList');
     const profileTab = document.getElementById('profileTab');
     const codesTab = document.getElementById('codesTab');
     const kanbanTab = document.getElementById('kanbanTab');
-
     const profileSection = document.getElementById('profileSection');
     const codesSection = document.getElementById('codesSection');
     const kanbanSection = document.getElementById('kanbanSection');
 
-    // --- التنقل بين تبويبات المصادقة (لـ email) ---
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // --- التنقل بين تبويبات المصادقة ---
     loginTab.addEventListener('click', () => {
       loginTab.classList.add('active');
       registerTab.classList.remove('active');
       loginFormContainer.classList.add('active');
       registerFormContainer.classList.remove('active');
+      loginError.textContent = "";
+      registerError.textContent = "";
     });
     registerTab.addEventListener('click', () => {
       registerTab.classList.add('active');
       loginTab.classList.remove('active');
       registerFormContainer.classList.add('active');
       loginFormContainer.classList.remove('active');
+      loginError.textContent = "";
+      registerError.textContent = "";
     });
 
-    // --- روابط تبديل طرق المصادقة ---
-    switchToGoogle.addEventListener('click', () => {
-      emailAuthContainer.classList.add('hidden');
-      googleSignInContainer.classList.remove('hidden');
-      codeContainer.classList.add('hidden');
-    });
+    // --- التبديل إلى تسجيل الدخول بواسطة الكود ---
     switchToCode.addEventListener('click', () => {
       emailAuthContainer.classList.add('hidden');
       codeContainer.classList.remove('hidden');
-      googleSignInContainer.classList.add('hidden');
-    });
-    switchToEmailFromGoogle.addEventListener('click', () => {
-      googleSignInContainer.classList.add('hidden');
-      emailAuthContainer.classList.remove('hidden');
-      codeContainer.classList.add('hidden');
-    });
-    switchToCodeFromGoogle.addEventListener('click', () => {
-      googleSignInContainer.classList.add('hidden');
-      codeContainer.classList.remove('hidden');
-      emailAuthContainer.classList.add('hidden');
     });
     switchToEmailFromCode.addEventListener('click', () => {
       codeContainer.classList.add('hidden');
       emailAuthContainer.classList.remove('hidden');
-      googleSignInContainer.classList.add('hidden');
-    });
-    switchToGoogleFromCode.addEventListener('click', () => {
-      codeContainer.classList.add('hidden');
-      googleSignInContainer.classList.remove('hidden');
-      emailAuthContainer.classList.add('hidden');
     });
 
-    // --- مصادقة البريد الإلكتروني ---
+    // --- تسجيل الدخول بواسطة البريد الإلكتروني ---
     emailLoginForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      loginError.textContent = "";
       const email = document.getElementById('loginEmail').value;
       const password = document.getElementById('loginPassword').value;
       auth.signInWithEmailAndPassword(email, password)
-        .then((result) => {
+        .then(result => {
           currentUserMethod = "email";
           currentUserData = result.user;
           showDashboard();
         })
-        .catch((error) => {
-          alert("فشل تسجيل الدخول: " + error.message);
+        .catch(error => {
+          console.error("Login Error:", error);
+          if(error.code === "auth/wrong-password") {
+            loginError.textContent = "كلمة المرور غير صحيحة.";
+          } else if(error.code === "auth/user-not-found") {
+            loginError.textContent = "المستخدم غير موجود.";
+          } else {
+            loginError.textContent = "حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى.";
+          }
         });
     });
 
+    // --- إنشاء حساب بواسطة البريد الإلكتروني ---
     emailRegisterForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      registerError.textContent = "";
       const email = document.getElementById('registerEmail').value;
       const password = document.getElementById('registerPassword').value;
       auth.createUserWithEmailAndPassword(email, password)
-        .then((result) => {
+        .then(result => {
           currentUserMethod = "email";
           currentUserData = result.user;
           showDashboard();
         })
-        .catch((error) => {
-          alert("فشل إنشاء الحساب: " + error.message);
-        });
-    });
-
-    // --- تسجيل الدخول باستخدام جوجل ---
-    googleSignInBtn.addEventListener('click', () => {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then((result) => {
-          currentUserMethod = "google";
-          currentUserData = result.user;
-          // توليد كود وحفظه
-          const code = generateCode();
-          validCodes.push(code);
-          showDashboard();
-        })
-        .catch((error) => {
-          alert("فشل تسجيل الدخول بجوجل: " + error.message);
+        .catch(error => {
+          console.error("Registration Error:", error);
+          if(error.code === "auth/email-already-in-use") {
+            registerError.textContent = "البريد الإلكتروني مستخدم بالفعل.";
+          } else if(error.code === "auth/weak-password") {
+            registerError.textContent = "كلمة المرور ضعيفة. يجب أن تتكون من 6 أحرف على الأقل.";
+          } else {
+            registerError.textContent = "حدث خطأ أثناء إنشاء الحساب. حاول مرة أخرى.";
+          }
         });
     });
 
     // --- تسجيل الدخول بواسطة الكود ---
     codeForm.addEventListener('submit', (e) => {
       e.preventDefault();
+      codeError.textContent = "";
       const inputCode = document.getElementById('accessCode').value;
       if(validCodes.includes(inputCode)) {
         currentUserMethod = "code";
         currentUserData = null;
         showDashboard(inputCode);
       } else {
-        alert("الكود غير صحيح، حاول مرة أخرى.");
+        codeError.textContent = "الكود غير صحيح، حاول مرة أخرى.";
       }
     });
 
-    // --- دالة توليد كود عشوائي ---
+    // --- دالة توليد كود عشوائي من 6 أرقام ---
     function generateCode() {
       return Math.floor(100000 + Math.random() * 900000).toString();
     }
 
     // --- عرض لوحة التحكم ---
     function showDashboard(codeUsed) {
-      // إخفاء صفحات المصادقة
       emailAuthContainer.classList.add('hidden');
-      googleSignInContainer.classList.add('hidden');
       codeContainer.classList.add('hidden');
       dashboardContainer.classList.remove('hidden');
 
-      // تحديث قسم الملف الشخصي
-      if (currentUserMethod === "google" || currentUserMethod === "email") {
+      if(currentUserMethod === "email") {
         profileContent.innerHTML = `
           <p><strong>البريد الإلكتروني:</strong> ${currentUserData.email}</p>
-          ${ currentUserData.displayName ? `<p><strong>الاسم:</strong> ${currentUserData.displayName}</p>` : '' }
-          ${ currentUserData.photoURL ? `<img src="${currentUserData.photoURL}" alt="صورة المستخدم" style="width:100px; border-radius:50%;">` : '' }
           <p><strong>الكود المولد:</strong> ${validCodes[validCodes.length - 1] || "لم يُولد بعد"}</p>
         `;
       } else {
@@ -501,9 +426,11 @@
     });
 
     // --- تسجيل الخروج ---
-    document.getElementById('logoutBtn').addEventListener('click', () => {
-      if (currentUserMethod === "google" || currentUserMethod === "email") {
-        auth.signOut().then(resetApp).catch((error) => alert("خطأ أثناء تسجيل الخروج: " + error.message));
+    logoutBtn.addEventListener('click', () => {
+      if(currentUserMethod === "email") {
+        auth.signOut().then(resetApp).catch(error => {
+          alert("خطأ أثناء تسجيل الخروج: " + error.message);
+        });
       } else {
         resetApp();
       }
@@ -544,11 +471,11 @@
       document.getElementById('doneTasks').innerHTML = "";
       kanbanTasks.forEach(task => {
         const taskEl = createTaskElement(task);
-        if (task.status === "todo") {
+        if(task.status === "todo") {
           document.getElementById('todoTasks').appendChild(taskEl);
-        } else if (task.status === "inProgress") {
+        } else if(task.status === "inProgress") {
           document.getElementById('inProgressTasks').appendChild(taskEl);
-        } else if (task.status === "done") {
+        } else if(task.status === "done") {
           document.getElementById('doneTasks').appendChild(taskEl);
         }
       });
@@ -557,7 +484,7 @@
       e.preventDefault();
       const title = document.getElementById('taskTitle').value.trim();
       const desc = document.getElementById('taskDesc').value.trim();
-      if (title !== "") {
+      if(title !== "") {
         const newTask = {
           id: Date.now().toString(),
           title: title,
@@ -578,7 +505,7 @@
         const taskId = e.dataTransfer.getData('text/plain');
         const newStatus = column.getAttribute('data-status');
         kanbanTasks = kanbanTasks.map(task => {
-          if (task.id === taskId) { task.status = newStatus; }
+          if(task.id === taskId) { task.status = newStatus; }
           return task;
         });
         saveKanbanTasks();
