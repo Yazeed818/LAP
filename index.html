@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+  <meta charset="UTF-8">
+  <title>نظام تسجيل الدخول باستخدام الكود</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      direction: rtl;
+      background-color: #f5f5f5;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .container {
+      width: 300px;
+      background: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      margin: 10px;
+    }
+    h2 {
+      text-align: center;
+      color: #333;
+    }
+    input[type="text"],
+    input[type="password"],
+    input[type="number"] {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #ccc;
+      border-radius: 3px;
+    }
+    button {
+      width: 100%;
+      padding: 10px;
+      background-color: #28a745;
+      border: none;
+      border-radius: 3px;
+      color: #fff;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #218838;
+    }
+    .message {
+      text-align: center;
+      margin-top: 20px;
+      color: #333;
+    }
+    .hidden {
+      display: none;
+    }
+    .link {
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+      text-align: center;
+      display: block;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+  <!-- نموذج تسجيل الدخول -->
+  <div class="container" id="loginContainer">
+    <h2>تسجيل الدخول</h2>
+    <form id="loginForm">
+      <input type="text" id="username" placeholder="اسم المستخدم" required>
+      <input type="password" id="password" placeholder="كلمة المرور" required>
+      <button type="submit">تسجيل الدخول</button>
+    </form>
+    <span class="link" id="switchToCodeLogin">أدخل باستخدام الكود</span>
+  </div>
+
+  <!-- نموذج الدخول باستخدام الكود -->
+  <div class="container hidden" id="codeContainer">
+    <h2>دخول بواسطة الكود</h2>
+    <form id="codeForm">
+      <input type="number" id="accessCode" placeholder="أدخل الكود" required>
+      <button type="submit">دخول</button>
+    </form>
+    <span class="link" id="switchToLogin">العودة لتسجيل الدخول</span>
+  </div>
+
+  <!-- صفحة الترحيب -->
+  <div class="container hidden" id="welcomeContainer">
+    <h2>مرحباً!</h2>
+    <p class="message" id="welcomeMessage"></p>
+    <button id="logoutBtn">تسجيل الخروج</button>
+  </div>
+
+  <script>
+    // مصفوفة لتخزين الأكواد الصالحة (ملاحظة: في تطبيق حقيقي يجب استخدام قاعدة بيانات أو خادم)
+    let validCodes = [];
+
+    // دالة لتوليد كود عشوائي من 6 أرقام
+    function generateCode() {
+      return Math.floor(100000 + Math.random() * 900000).toString();
+    }
+
+    // التبديل بين نموذج تسجيل الدخول والنموذج الخاص بالدخول عبر الكود
+    document.getElementById('switchToCodeLogin').addEventListener('click', function() {
+      document.getElementById('loginContainer').classList.add('hidden');
+      document.getElementById('codeContainer').classList.remove('hidden');
+    });
+    document.getElementById('switchToLogin').addEventListener('click', function() {
+      document.getElementById('codeContainer').classList.add('hidden');
+      document.getElementById('loginContainer').classList.remove('hidden');
+    });
+
+    // معالجة نموذج تسجيل الدخول
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      // في تطبيق حقيقي يتم التحقق من صحة بيانات الاعتماد
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+      if(username && password) {
+        const code = generateCode();
+        // حفظ الكود في المصفوفة ليكون صالحاً للدخول
+        validCodes.push(code);
+        // عرض رسالة ترحيب مع الكود للمستخدم
+        document.getElementById('welcomeMessage').innerHTML = "مرحباً " + username + "!<br>كود الدخول الخاص بك هو: <strong>" + code + "</strong>";
+        document.getElementById('loginContainer').classList.add('hidden');
+        document.getElementById('welcomeContainer').classList.remove('hidden');
+      }
+    });
+
+    // معالجة نموذج الدخول بواسطة الكود (للزملاء)
+    document.getElementById('codeForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const inputCode = document.getElementById('accessCode').value;
+      if(validCodes.includes(inputCode)) {
+        // دخول ناجح عبر الكود
+        document.getElementById('welcomeMessage').innerHTML = "مرحباً! لقد تم الدخول باستخدام الكود: <strong>" + inputCode + "</strong>";
+        document.getElementById('codeContainer').classList.add('hidden');
+        document.getElementById('welcomeContainer').classList.remove('hidden');
+      } else {
+        alert("الكود غير صحيح. الرجاء المحاولة مرة أخرى.");
+      }
+    });
+
+    // معالجة تسجيل الخروج
+    document.getElementById('logoutBtn').addEventListener('click', function() {
+      // إعادة تعيين النماذج وإظهار نموذج تسجيل الدخول
+      document.getElementById('loginForm').reset();
+      document.getElementById('codeForm').reset();
+      document.getElementById('welcomeContainer').classList.add('hidden');
+      document.getElementById('loginContainer').classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>
